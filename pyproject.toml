@@ -23,6 +23,7 @@ botocore = "^1.29.158"
 pyarrow = "^12.0.1"
 scikit-learn = "^1.2.2"
 sagemaker = "^2.173.0"
+pandera = {extras = ["mypy", "io"], version = "^0.17.2"}
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.4.0"

@@ -11,8 +11,6 @@ import sagemaker
 import sagemaker.session
 from sagemaker.workflow.pipeline_context import PipelineSession
 
-from sm_pipelines_oo.utils import load_pydantic_config_from_file
-
 
 class BootstrapConfig(BaseSettings):
     """
@@ -27,20 +25,12 @@ class BootstrapConfig(BaseSettings):
     ENVIRONMENT: Literal['dev', 'qa', 'prod']
 
 
-class PipelineConfig(BaseSettings):
+class SharedConfig(BaseSettings):
     """Defines configuration shared by all pipeline steps (for a given environment)."""
     project_name: str
     # base_job_prefix: str
     region: str
-    _role: str | None = None
-    project_bucket: str | None = None
-    project_prefix: str | None = None
-
-
-if __name__ == "__main__":
-    ENVIRONMENT: Literal['dev', 'qa', 'prod'] =  BootstrapConfig().ENVIRONMENT  # type: ignore
-
-    pipeline_config: BaseSettings = load_pydantic_config_from_file(
-        config_cls=PipelineConfig,
-        env_file = f"sm_pipelines_oo/configs/{ENVIRONMENT}/.env_shared",
-)
+    # Todo: make the following three fields optional and use Sagemaker default if None
+    role: str
+    project_bucket: str
+    project_prefix: str

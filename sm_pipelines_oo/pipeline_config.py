@@ -22,7 +22,7 @@ class BootstrapConfig(BaseSettings):
     – For development, it could either be globally defined for all project in ~/.bashrc
       (recommended) or for just this project in the IDE.
     """
-    ENVIRONMENT: Literal['dev', 'qa', 'prod']
+    ENVIRONMENT: Literal['local', 'dev', 'qa', 'prod']
 
 
 class SharedConfig(BaseSettings):

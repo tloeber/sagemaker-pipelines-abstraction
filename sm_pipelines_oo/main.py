@@ -17,7 +17,9 @@ from sm_pipelines_oo.pipeline_wrapper import PipelineWrapper
 
 # Load configs
 # ============
-ENVIRONMENT: Literal['dev', 'qa', 'prod'] =  BootstrapConfig().ENVIRONMENT  # type: ignore
+# Todo: Pipeline object should take config directory as an init argument and be able to load config
+# itself.
+ENVIRONMENT: Literal['dev', 'qa', 'prod'] = BootstrapConfig().ENVIRONMENT  # type: ignore
 
 shared_config: BaseSettings = load_pydantic_config_from_file(
     config_cls=SharedConfig,
@@ -29,5 +31,4 @@ pipeline = PipelineWrapper(
     steps=[pre_process_step, train_step],
     environment=ENVIRONMENT,
     shared_config=shared_config,
-    step_configs=[],
 )

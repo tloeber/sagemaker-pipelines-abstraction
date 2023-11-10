@@ -5,6 +5,7 @@ from functools import cached_property
 from typing import Literal
 import os
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 import boto3
 import sagemaker
@@ -30,7 +31,7 @@ class SharedConfig(BaseSettings):
     project_name: str
     # base_job_prefix: str
     region: str
-    # Todo: make the following three fields optional and use Sagemaker default if None
-    role: str
-    project_bucket: str
-    project_prefix: str
+    role_arn: str | None = None
+    project_bucket: str | None = None
+    project_version: str | None = None
+    base_dir_local: str | None = None  # add default: /opt/ml/

@@ -4,7 +4,7 @@ from functools import cached_property
 
 from pydantic_settings import BaseSettings
 import boto3
-from sagemaker.session import Session
+from sagemaker.session import Session, get_execution_role
 from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.workflow.pipeline_context import LocalPipelineSession
 from sagemaker.workflow.steps import Step
@@ -50,14 +50,28 @@ class PipelineWrapper:
             )
 
     @cached_property
-    def pipeline(self):
-        return Pipeline(
+    def _role_arn(self) -> str:
+        """
+        Wrapper around the role_arn specified in shared_config. If the user has not specified this
+        optional field, we return the default role.
+        """
+        provided_role_arn: str | None = self.shared_config.role_arn
+        if provided_role_arn is None:
+            return get_execution_role(self._sm_session)
+        else:
+            return provided_role_arn
+
+    @cached_property
+    def _pipeline(self):
+        pipeline = Pipeline(
             name=self.shared_config.project_name,
             steps=self.steps,
             sagemaker_session=self._sm_session,
         )
+        pipeline.create(role_arn=self._role_arn)
+        return pipeline
 
 
     def run(self) -> None:
-        execution = self.pipeline.start()
+        execution = self._pipeline.start()
         execution.wait(max_attempts=120, delay=60)

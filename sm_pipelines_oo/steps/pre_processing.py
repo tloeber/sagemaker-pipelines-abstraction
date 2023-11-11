@@ -40,23 +40,21 @@ def make_pre_processing_step(
         role=role_arn,
     )
 
-    local_dir = Path(shared_config.base_dir_local) / "pre_processing"
+    input_path_s3 = f"s3://{shared_config.PROJECT_BUCKET}/pre_processing/{pre_processing_config.input_filename}"
     inputs = [
-        ProcessingInput(
-            source=f"s3://{shared_config.PROJECT_BUCKET}/preprocessing/input/{pre_processing_config.input_filename}",
-            destination=str(local_dir / "input"),
-        )
+        ProcessingInput(source=input_path_s3, destination="/opt/ml/pre_processing/input")
     ]
     outputs = [
-        ProcessingOutput(output_name="train", source=str(local_dir / "train")),
-        ProcessingOutput(output_name="validation", source=str(local_dir / "validation")),
-        ProcessingOutput(output_name="test", source=str(local_dir / "test")),
+        ProcessingOutput(output_name="train", source="/opt/ml/pre_processing/train"),
+        ProcessingOutput(output_name="validation", source="/opt/ml/pre_processing/validation"),
+        ProcessingOutput(output_name="test", source="/opt/ml/pre_processing/test"),
     ]
 
     step_args = sklearn_processor.run(
         inputs=inputs,
         outputs=outputs,
         code='../code/pre_processing.py',
+        arguments=[input_path_s3],
     )
 
     return ProcessingStep(

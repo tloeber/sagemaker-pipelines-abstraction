@@ -34,4 +34,3 @@ class SharedConfig(BaseSettings):
     role_arn: str | None = None
     project_bucket: str | None = None
     project_version: str | None = None
-    base_dir_local: str | None = None  # add default: /opt/ml/

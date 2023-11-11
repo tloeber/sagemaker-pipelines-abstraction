@@ -1,6 +1,5 @@
-from typing import Literal
+from typing import Literal, Callable, TypeAlias
 from functools import cached_property
-
 
 from pydantic_settings import BaseSettings
 import boto3
@@ -13,17 +12,30 @@ from sm_pipelines_oo.pipeline_config import BootstrapConfig, SharedConfig
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
 
 
+StepFactoryFunction: TypeAlias = Callable[
+    [BaseSettings, BaseSettings, Session, str],
+    Step
+]
 
 class PipelineWrapper:
     def __init__(
         self,
-        steps: list[Step],
+        steps: list[tuple[StepFactoryFunction, BaseSettings]],
         environment: Literal['local', 'dev', 'qa', 'prod'],
         shared_config: SharedConfig,
     ) -> None:
-        self.steps = steps
         self.environment = environment
         self.shared_config = shared_config
+
+        self.steps: list[Step] = []
+        for step_factory_function, step_config in steps:
+            step: Step = step_factory_function(
+                shared_config=shared_config,
+                step_config=step_config,
+                sm_session=self._sm_session,
+                role_arn=self._role_arn,
+            )
+            self.steps.append(step)
 
     @cached_property
     def _boto_session(self):
@@ -52,8 +64,8 @@ class PipelineWrapper:
     @cached_property
     def _role_arn(self) -> str:
         """
-        Wrapper around the role_arn specified in shared_config. If the user has not specified this
-        optional field, we return the default role.
+        Wrapper around the role_arn specified in shared_config. Adds handling the case where the
+        user has not specified this optional field. In this case, returns the default role.
         """
         provided_role_arn: str | None = self.shared_config.role_arn
         if provided_role_arn is None:

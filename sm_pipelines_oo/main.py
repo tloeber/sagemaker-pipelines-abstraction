@@ -5,8 +5,8 @@ from pydantic_settings import BaseSettings
 from sagemaker.workflow.pipeline import Pipeline
 
 from sm_pipelines_oo.pipeline_config import SharedConfig
-from sm_pipelines_oo.steps.pre_processing import make_pre_processing_step
-# from sm_pipelines_oo.steps.model_training import train_step
+from sm_pipelines_oo.steps.pre_processing import StepFactory
+from sm_pipelines_oo.steps.model_training import train_step
 # from sm_pipelines_oo.steps.model_evaluation import eval_step
 # from sm_pipelines_oo.steps.model_registration import condition_step
 
@@ -30,8 +30,8 @@ shared_config: BaseSettings = load_pydantic_config_from_file(
 # Create Pipeline
 # ===============
 pipeline = PipelineWrapper(
-    steps=[
-        (make_pre_processing_step, pre_processing_config),
+    steps_building_blocks=[
+        (StepFactory, pre_processing_config),
         # train_step
     ],
     environment=ENVIRONMENT,

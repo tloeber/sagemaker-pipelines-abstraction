@@ -10,30 +10,26 @@ from sagemaker.workflow.steps import Step
 
 from sm_pipelines_oo.pipeline_config import BootstrapConfig, SharedConfig
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
+from sm_pipelines_oo.steps.pre_processing import StepFactory
 
-
-StepFactoryFunction: TypeAlias = Callable[
-    [BaseSettings, BaseSettings, Session, str],
-    Step
-]
 
 class PipelineWrapper:
     def __init__(
         self,
-        steps: list[tuple[StepFactoryFunction, BaseSettings]],
+        steps_building_blocks: list[tuple[StepFactory, BaseSettings]],
         environment: Literal['local', 'dev', 'qa', 'prod'],
         shared_config: SharedConfig,
     ) -> None:
         self.environment = environment
         self.shared_config = shared_config
-
         self.steps: list[Step] = []
-        for step_factory_function, step_config in steps:
-            step: Step = step_factory_function(
+        self._create_steps(steps_building_blocks, shared_config)
+
+    def _create_steps(self, steps_building_blocks, shared_config) -> None:
+        for step_factory, step_config in steps_building_blocks:
+            step: Step = step_factory.create_step(
                 shared_config=shared_config,
                 step_config=step_config,
-                sm_session=self._sm_session,
-                role_arn=self._role_arn,
             )
             self.steps.append(step)
 
@@ -83,6 +79,9 @@ class PipelineWrapper:
         pipeline.create(role_arn=self._role_arn)
         return pipeline
 
+
+    # Public methods
+    # ==============
 
     def run(self) -> None:
         execution = self._pipeline.start()

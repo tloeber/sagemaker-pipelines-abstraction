@@ -2,7 +2,8 @@ import os
 from abc import ABC, abstractmethod
 from pathlib import Path
 from dataclasses import dataclass
-from typing import TypedDict
+
+from typing import TypedDict, TypeAlias, Any
 from loguru import logger
 from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.sklearn.processing import SKLearnProcessor
@@ -11,10 +12,8 @@ from sagemaker.workflow.entities import PipelineVariable
 from pydantic_settings import BaseSettings
 
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
-from sm_pipelines_oo.pipeline_config import ENVIRONMENT, SharedConfig
-
-import sm_pipelines_oo.sagemaker_utils as su
-
+from sm_pipelines_oo.pipeline_config import Environment, SharedConfig
+from sm_pipelines_oo.pipeline_wrapper import AWSConnector
 
 class ProcessingConfig(BaseSettings):
     input_filename: str
@@ -23,12 +22,6 @@ class ProcessingConfig(BaseSettings):
     sklearn_framework_version: str
     step_name: str | None = "Process"
 
-# Return type should be "PreProcessingConfig", but first need to refactor load_pydantic...() to use
-# the more specific return type. (See ToDo at function definition.)
-pre_processing_config: BaseSettings = load_pydantic_config_from_file(
-    config_cls=ProcessingConfig,
-    env_file=f"sm_pipelines_oo/configs/{ENVIRONMENT}/.env_pre_processing",
-)
 
 # class RunArgs(ABC):
 #     """This serves as an abstract supertype for all permissible concrete types of RunArgs."""
@@ -51,83 +44,89 @@ class SKLearnProcessorRunArgs(TypedDict):
 # Register SKLearnProcessorRunArgs as a virtual subclass of RunArgs
 # RunArgs.register(SKLearnProcessorRunArgs)
 
-class StepFactoryInterface(ABC):
-    @abstractmethod
-    def create_step(step_config, shared_config) -> ProcessingStep: ...
-
-
-# For now, I need to explicitly add each factory here to "register" it.
-# Preferably, we would make registration possible where a new class is defined. Tried using virtual
-# subclassing, but this did not play well with type checker.
-# Todo: Try using generics.
-StepFactory: TypeAlias = ProcessingStepFactory
-
 class ProcessingStepFactory:
     def __init__(
         self,
         processor_cls,
+        step_config_path: Path,  # Path to .env file containing configurations for this step.
+        aws_connector: AWSConnector,
     ):
         self._processor_cls = processor_cls
-        self._processor: SKLearnProcessor | None = None
+        self.aws_connector = aws_connector
+        # todo: fixed type problem by making load_p... generic. Potentially think about making it a decorator instead?
+        self.step_config: ProcessingConfig = load_pydantic_config_from_file(  # type: ignore
+            config_cls=ProcessingConfig,
+            config_path=str(step_config_path),
+        )
 
 
-    def _create_processor(self, step_config, shared_config) -> None:
-        """
-        Instantiate processor, combining shared and step-specific configurations.
-
-        Note that this can only be run from the PipelineWrapper, because this factory does not have
-        access to the step- or shared configs. (This is why it is not run in __init__().)
-        """
-        processor_args = {
-            **step_config.to_dict(),
-            'sagemaker_session': shared_config.sm_session,
-            'role': shared_config.role_arn,
-        }
-        self._processor: SKLearnProcessor = self._processor_cls(**processor_args)
-
-    def _get_run_args(self, step_config, shared_config) -> SKLearnProcessorRunArgs:
-        input_path_s3 = f"s3://{shared_config.project_bucket}/{step_config.step_name}/{step_config.input_filename}"
+    def _get_run_args(self, shared_config) -> SKLearnProcessorRunArgs:
+        input_path_s3 = f"s3://{shared_config.project_bucket}/{self.step_config.step_name}/{self.step_config.input_filename}"
         skl_run_args = SKLearnProcessorRunArgs(
             inputs = [
                 ProcessingInput(
                     source=input_path_s3,
-                    destination=f"/opt/ml/{step_config.step_name}/input"
+                    destination=f"/opt/ml/{self.step_config.step_name}/input"
                 ),
             ],
             outputs = [
                 ProcessingOutput(
                     output_name="train",
-                    source=f"/opt/ml/{step_config.step_name}/train"
+                    source=f"/opt/ml/{self.step_config.step_name}/train"
                 ),
                 ProcessingOutput(
                     output_name="validation",
-                    source=f"/opt/ml/{step_config.step_name}/validation"
+                    source=f"/opt/ml/{self.step_config.step_name}/validation"
                 ),
                 ProcessingOutput(
                     output_name="test",
-                    source=f"/opt/ml/{step_config.step_name}/test"
+                    source=f"/opt/ml/{self.step_config.step_name}/test"
                 ),
             ],
-            code=f"../code/{step_config.step_name}.py",
-            run_args = None,  # Todo: Decide whether this should come from configuration. May depend on type of step.
+            code=f"../code/{self.step_config.step_name}.py",
+            arguments=None # Todo: Decide whether this should come from configuration. May depend on type of step.
         )
         return skl_run_args
 
+    def create_processor(self, shared_config: SharedConfig) -> SKLearnProcessor:
+        """
+        Instantiate processor, combining step-specific configs with configs from AWS connector.
 
-    def create_step(self, step_config, shared_config) -> ProcessingStep:
+        Note that we could technically run this in __init__() now, because we do no longer use
+        anything from the shared_config. However, leaving it a separate method that accepts outside
+        configs as arguments lets us easily change it back to use values from shared_config again if
+        necessary.
+        """
+        step_config_dict: dict[str, Any] = self.step_config.model_dump()
+        processor_args: dict[str, Any] = {
+            **step_config_dict,
+            'sagemaker_session': self.aws_connector.sm_session,
+            'role': self.aws_connector.role_arn,
+        }
+        return self._processor_cls(**processor_args)
+
+    def create_step(self, shared_config: SharedConfig) -> ProcessingStep:
         """
         Note that this can only be run from the PipelineWrapper, because this factory does not have
-        access to the step- or shared configs.
+        access to the shared configs.
         """
-        self._create_processor(step_config=step_config, shared_config=shared_config)
-        # Tell type checker that this variable cannot be None anymore (because we ran
-        # _create_processor()).
-        self._processor: SKLearnProcessor
+        processor: SKLearnProcessor = self.create_processor(shared_config=shared_config)
 
-        run_args: SKLearnProcessorRunArgs = self._get_run_args(step_config=step_config, shared_config=shared_config)
+        run_args: SKLearnProcessorRunArgs = self._get_run_args(self, shared_config=shared_config)
         return ProcessingStep(
-            name=step_config.step_name,
-            step_args=self._processor.run(
+            name=self.step_config.step_name,
+            step_args=processor.run(
                 **run_args
             ),
         )
+
+
+# class StepFactoryInterface(ABC):
+#     @abstractmethod
+#     def create_step(self, step_config, shared_config) -> ProcessingStep: ...
+
+# For now, I need to explicitly add each factory here to "register" it.
+# Preferably, we would make registration possible where a new class is defined. Tried using virtual
+# subclassing (see above), but this did not play well with type checker.
+# Todo: Try using generics.
+StepFactory: TypeAlias = ProcessingStepFactory

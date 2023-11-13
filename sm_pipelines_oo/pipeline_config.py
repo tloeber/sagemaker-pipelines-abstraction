@@ -2,7 +2,7 @@
 
 from pathlib import Path
 from functools import cached_property
-from typing import Literal
+from typing import TypeAlias, Literal
 import os
 
 from pydantic import field_validator
@@ -12,6 +12,8 @@ import sagemaker
 import sagemaker.session
 from sagemaker.workflow.pipeline_context import PipelineSession
 
+
+Environment: TypeAlias = Literal['local', 'dev', 'qa', 'prod']
 
 class BootstrapConfig(BaseSettings):
     """
@@ -23,7 +25,7 @@ class BootstrapConfig(BaseSettings):
     – For development, it could either be globally defined for all project in ~/.bashrc
       (recommended) or for just this project in the IDE.
     """
-    ENVIRONMENT: Literal['local', 'dev', 'qa', 'prod']
+    ENVIRONMENT: Environment
 
 
 class SharedConfig(BaseSettings):

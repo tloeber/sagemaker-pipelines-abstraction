@@ -10,7 +10,8 @@ from sagemaker.workflow.pipeline_context import LocalPipelineSession
 from sagemaker.workflow.steps import Step
 
 from sm_pipelines_oo.pipeline_config import SharedConfig, Environment
-from sm_pipelines_oo.steps.pre_processing import StepFactory
+
+from sm_pipelines_oo.steps.interfaces import StepFactoryInterface
 
 
 class AWSConnector:
@@ -62,7 +63,7 @@ class AWSConnector:
 class PipelineWrapper:
     def __init__(
         self,
-        step_factories: list[StepFactory],
+        step_factories: list[StepFactoryInterface],
         environment: Environment,
         shared_config: SharedConfig,
         aws_connector: AWSConnector,
@@ -74,7 +75,7 @@ class PipelineWrapper:
         self.steps: list[Step] = []
         self._create_steps(step_factories, shared_config)
 
-    def _create_steps(self, step_factories: list[StepFactory], shared_config: SharedConfig) -> None:
+    def _create_steps(self, step_factories: list[StepFactoryInterface], shared_config: SharedConfig) -> None:
         for factory in step_factories:
             step: Step = factory.create_step(
                 shared_config=shared_config,

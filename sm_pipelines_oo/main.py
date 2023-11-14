@@ -7,8 +7,8 @@ from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.sklearn.processing import SKLearnProcessor
 
 from sm_pipelines_oo.pipeline_config import SharedConfig
-from sm_pipelines_oo.steps.pre_processing import StepFactory, ProcessingStepFactory
-from sm_pipelines_oo.steps.model_training import train_step
+from sm_pipelines_oo.steps.pre_processing import ProcessingStepFactory
+# from sm_pipelines_oo.steps.model_training import train_step
 # from sm_pipelines_oo.steps.model_evaluation import eval_step
 # from sm_pipelines_oo.steps.model_registration import condition_step
 

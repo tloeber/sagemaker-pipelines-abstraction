@@ -1,5 +1,4 @@
 import os
-from abc import ABC, abstractmethod
 from pathlib import Path
 from dataclasses import dataclass
 
@@ -14,6 +13,7 @@ from pydantic_settings import BaseSettings
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
 from sm_pipelines_oo.pipeline_config import Environment, SharedConfig
 from sm_pipelines_oo.pipeline_wrapper import AWSConnector
+from sm_pipelines_oo.steps.interfaces import StepFactoryInterface
 
 class ProcessingConfig(BaseSettings):
     input_filename: str
@@ -44,7 +44,8 @@ class SKLearnProcessorRunArgs(TypedDict):
 # Register SKLearnProcessorRunArgs as a virtual subclass of RunArgs
 # RunArgs.register(SKLearnProcessorRunArgs)
 
-class ProcessingStepFactory:
+
+class ProcessingStepFactory(StepFactoryInterface):
     def __init__(
         self,
         processor_cls,
@@ -119,14 +120,3 @@ class ProcessingStepFactory:
                 **run_args
             ),
         )
-
-
-# class StepFactoryInterface(ABC):
-#     @abstractmethod
-#     def create_step(self, step_config, shared_config) -> ProcessingStep: ...
-
-# For now, I need to explicitly add each factory here to "register" it.
-# Preferably, we would make registration possible where a new class is defined. Tried using virtual
-# subclassing (see above), but this did not play well with type checker.
-# Todo: Try using generics.
-StepFactory: TypeAlias = ProcessingStepFactory

@@ -6,15 +6,17 @@ from pathlib import Path
 from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.sklearn.processing import SKLearnProcessor
 
-from sm_pipelines_oo.pipeline_config import SharedConfig
+from sm_pipelines_oo.shared_config_schema import SharedConfig
 from sm_pipelines_oo.steps.pre_processing import ProcessingStepFactory
 # from sm_pipelines_oo.steps.model_training import train_step
 # from sm_pipelines_oo.steps.model_evaluation import eval_step
 # from sm_pipelines_oo.steps.model_registration import condition_step
 
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
-from sm_pipelines_oo.pipeline_config import BootstrapConfig, SharedConfig, Environment
-from sm_pipelines_oo.pipeline_wrapper import AWSConnector, PipelineWrapper
+from sm_pipelines_oo.shared_config_schema import BootstrapConfig, SharedConfig, Environment
+from sm_pipelines_oo.connector.interface import AWSConnectorInterface
+from sm_pipelines_oo.connector.implementation import create_aws_connector
+from sm_pipelines_oo.pipeline_wrapper import PipelineWrapper
 
 
 # Load configs
@@ -22,11 +24,12 @@ from sm_pipelines_oo.pipeline_wrapper import AWSConnector, PipelineWrapper
 # Todo: Pipeline (Wrapper?) object should take config directory as an init argument and be able to
 # load config itself, so that we don't have to do this here.
 ENVIRONMENT: Environment = BootstrapConfig().ENVIRONMENT  # type: ignore
+# ENVIRONMENT: Environment = 'local'
 
 config_path_shared = f"configs/{ENVIRONMENT}/.env_shared"
 config_path_pre_processing = Path(f"configs/{ENVIRONMENT}/.env_pre_process")
 
-# todo: fixed type problem by making load_p... generic. Potentially think about making it a decorator instead?
+# todo: fix type problem by making load_p... generic. Potentially think about making it a decorator instead?
 shared_config: SharedConfig = load_pydantic_config_from_file(  # type: ignore
     config_cls=SharedConfig,
     config_path=config_path_shared,
@@ -34,7 +37,7 @@ shared_config: SharedConfig = load_pydantic_config_from_file(  # type: ignore
 
 # Create AWS Connector
 # ====================
-aws_connector = AWSConnector(
+aws_connector: AWSConnectorInterface = create_aws_connector(
     environment=ENVIRONMENT,
     shared_config=shared_config,
 )
@@ -58,3 +61,8 @@ pipeline = PipelineWrapper(
     shared_config=shared_config,
     aws_connector=aws_connector,
 )
+
+
+# Run Pipeline
+# =============
+pipeline.run()

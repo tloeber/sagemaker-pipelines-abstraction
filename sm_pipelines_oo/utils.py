@@ -14,7 +14,8 @@ def load_pydantic_config_from_file(config_cls: type[BaseSettings], config_path: 
     except ValidationError as e:
         if not Path(config_path).is_file():
             logger.exception(
-                f"Failed to load {config_cls.__name__} because the following file does not exist: {config_path}.\n\nError: {e}"
+                f"Failed to load {config_cls.__name__} because the following file does not exist:"
+                f"{config_path}.\n\nCurrent directory: {Path.cwd()}\n\nError: {e}"
             )
 
         raise e

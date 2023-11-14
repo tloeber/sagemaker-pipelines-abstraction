@@ -1,4 +1,10 @@
-"""This file defines a config for settings that are shared by multiple steps in the pipeline."""
+"""
+This file defines a schema for configs that are shared across multiple *steps* in the pipeline.
+
+(Note that "shared" does not refer to sharing across *environments*. We are not sharing any configs
+across environments to avoid the complications that would arise from adding a second dimension of
+shared configuration.)
+"""
 
 from pathlib import Path
 from functools import cached_property

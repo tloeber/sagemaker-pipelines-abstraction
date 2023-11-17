@@ -63,7 +63,7 @@ class ProcessingStepFactory(StepFactoryInterface):
 
 
     def _get_run_args(self, shared_config) -> SKLearnProcessorRunArgs:
-        input_path_s3 = f"s3://{shared_config.project_bucket}/{self.step_config.step_name}/{self.step_config.input_filename}"
+        input_path_s3 = f"s3://{shared_config.project_bucket_name}/{self.step_config.step_name}/{self.step_config.input_filename}"
         skl_run_args = SKLearnProcessorRunArgs(
             inputs = [
                 ProcessingInput(

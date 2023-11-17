@@ -24,7 +24,7 @@ from sm_pipelines_oo.pipeline_wrapper import PipelineWrapper
 # Todo: Pipeline (Wrapper?) object should take config directory as an init argument and be able to
 # load config itself, so that we don't have to do this here.
 ENVIRONMENT: Environment = BootstrapConfig().ENVIRONMENT  # type: ignore
-# ENVIRONMENT: Environment = 'local'
+logger.info(f"Loaded configs for environment: {ENVIRONMENT}")
 
 config_path_shared = f"configs/{ENVIRONMENT}/.env_shared"
 config_path_pre_processing = Path(f"configs/{ENVIRONMENT}/.env_pre_process")

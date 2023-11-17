@@ -31,7 +31,7 @@ class AWSConnector(AWSConnectorInterface):
             boto_session=self._boto_session,
             sagemaker_client=self.sm_client,
             sagemaker_runtime_client=self.sm_runtime_client,
-            default_bucket=self.shared_config.project_bucket,
+            default_bucket=self.shared_config.project_bucket_name,
         )
 
     @cached_property
@@ -43,16 +43,23 @@ class AWSConnector(AWSConnectorInterface):
         return self._boto_session.client("sagemaker-runtime")
 
     @cached_property
+    def aws_account_id(self) -> int:
+        sts_client = boto3.client("sts")
+        return sts_client.get_caller_identity()["Account"]
+
+
+    @cached_property
     def role_arn(self) -> str:
         """
-        Wrapper around the role_arn specified in shared_config. Adds handling the case where the
-        user has not specified this optional field. In this case, returns the default role.
+        - Constructs role arn from role name
+        - If role name (or AWS account ID) is not set, returns default role arn.
         """
-        provided_role_arn: str | None = self.shared_config.role_arn
-        if provided_role_arn is None:
+        provided_role_name: str | None = self.shared_config.role_name
+
+        if provided_role_name is None:
             return get_execution_role(self.sm_session)
         else:
-            return provided_role_arn
+            return f'arn:aws:iam::{self.aws_account_id}:role/{provided_role_name}'
 
     @cached_property
     def default_bucket(self) -> str:

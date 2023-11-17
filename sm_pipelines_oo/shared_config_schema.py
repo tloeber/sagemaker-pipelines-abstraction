@@ -37,8 +37,9 @@ class BootstrapConfig(BaseSettings):
 class SharedConfig(BaseSettings):
     """Defines configuration shared by all pipeline steps (for a given environment)."""
     project_name: str
-    # base_job_prefix: str
     region: str
-    role_arn: str | None = None
-    project_bucket: str | None = None
+    # To do: consider which of these fields should be made required.
+    role_name: str | None = None
+    aws_account_id: int | None = None
+    project_bucket_name: str | None = None
     project_version: str | None = None

@@ -4,12 +4,14 @@ version = "0.0.1"
 description = "Sagemaker Pipelines OO"
 authors = ["Thomas Loeber <thomas.loeber73@gmail.com>"]
 license = "MIT"
-packages = [{ include = "sm_pipelines_oo" }]
+packages = [{ include = "sm_pipelines_oo", from = "src" }]
 
 [[tool.poetry.source]]
 name = "PyPI"
 priority = "primary"
 
+[tool.pytest.ini_options]
+pythonpath = ["src"]
 
 [tool.poetry.dependencies]
 # Upper limit is required for tensorflow to install.

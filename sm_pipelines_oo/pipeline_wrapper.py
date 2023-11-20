@@ -1,8 +1,9 @@
 from functools import cached_property
 from typing import Literal, Callable, TypeAlias
 from pathlib import Path
+from datetime import datetime
 
-
+from loguru import logger
 from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.workflow.steps import Step
 
@@ -35,8 +36,9 @@ class PipelineWrapper:
 
     @cached_property
     def _pipeline(self):
+        pipeline_name = f'{self.shared_config.project_name}-{datetime.now():%Y-%m-%d-%H-%M-%S}'
         pipeline = Pipeline(
-            name=self.shared_config.project_name,
+            name=pipeline_name,
             steps=self.steps,
             sagemaker_session=self._aws_connector.sm_session,
         )
@@ -48,7 +50,7 @@ class PipelineWrapper:
     # ==============
 
     def run(self) -> None:
-        # print("session", self._aws_connector.sm_session)
+        logger.info(f"Starting pipeline run for project {self.shared_config.project_name}")
         execution = self._pipeline.start()
-        # execution.wait(max_attempts=120, delay=60)
+        execution.wait()
         execution.list_steps()

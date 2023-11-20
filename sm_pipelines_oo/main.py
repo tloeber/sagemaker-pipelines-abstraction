@@ -51,8 +51,19 @@ pre_processing_step_factory = ProcessingStepFactory(
 )
 
 
-# Create Pipeline
-# ===============
+# Running processing step directly
+# ================================
+
+proccessing_step = pre_processing_step_factory.create_step(
+    shared_config=shared_config,
+)
+pre_processor = pre_processing_step_factory.processor
+run_args = pre_processing_step_factory._get_run_args(shared_config=shared_config)
+pre_processor.run(**run_args)
+
+
+# # Create Pipeline
+# # ===============
 pipeline = PipelineWrapper(
     step_factories=[
         pre_processing_step_factory,
@@ -63,6 +74,6 @@ pipeline = PipelineWrapper(
 )
 
 
-# Run Pipeline
-# =============
-pipeline.run()
+# # Run Pipeline
+# # =============
+# pipeline.run()

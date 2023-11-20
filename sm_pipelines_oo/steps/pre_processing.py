@@ -40,7 +40,7 @@ class SKLearnProcessorRunArgs(TypedDict):
     inputs: list[ProcessingInput]
     outputs: list[ProcessingOutput]
     code: str
-    arguments: list[str | PipelineVariable] | None
+    job_arguments: list[str] | None
 
 # Register SKLearnProcessorRunArgs as a virtual subclass of RunArgs
 # RunArgs.register(SKLearnProcessorRunArgs)
@@ -114,12 +114,9 @@ class ProcessingStepFactory(StepFactoryInterface):
         Note that this can only be run from the PipelineWrapper, because this factory does not have
         access to the shared configs.
         """
-        processor: SKLearnProcessor = self.processor
-
         run_args: SKLearnProcessorRunArgs = self._get_run_args(shared_config=shared_config)
         return ProcessingStep(
             name=self.step_config.step_name,
-            step_args=processor.run(
-                **run_args
-            ),
+            processor=self.processor,
+            **run_args
         )

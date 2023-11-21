@@ -6,7 +6,9 @@ from functools import cached_property
 from typing import TypedDict, TypeAlias, Any
 from loguru import logger
 from sagemaker.processing import ProcessingInput, ProcessingOutput
-from sagemaker.sklearn.processing import SKLearnProcessor
+from sagemaker.processing import Processor, FrameworkProcessor
+
+# from sagemaker.sklearn.processing import SKLearnProcessor
 from sagemaker.workflow.steps import ProcessingStep
 from sagemaker.workflow.entities import PipelineVariable
 from pydantic_settings import BaseSettings
@@ -36,11 +38,12 @@ class ProcessingConfig(BaseSettings):
 
 
 # @dataclass
-class SKLearnProcessorRunArgs(TypedDict):
+class PreProcessorRunArgs(TypedDict):
     inputs: list[ProcessingInput]
     outputs: list[ProcessingOutput]
+    source_dir: str
     code: str
-    job_arguments: list[str] | None
+    # arguments: list[str] | None
 
 # Register SKLearnProcessorRunArgs as a virtual subclass of RunArgs
 # RunArgs.register(SKLearnProcessorRunArgs)
@@ -50,10 +53,12 @@ class ProcessingStepFactory(StepFactoryInterface):
     def __init__(
         self,
         processor_cls,
+        processor_extra_kwargs: dict[str, Any],
         step_config_path: Path,  # Path to .env file containing configurations for this step.
         aws_connector: AWSConnectorInterface,
     ):
         self._processor_cls = processor_cls
+        self._processor_extra_kwargs = processor_extra_kwargs
         self.aws_connector = aws_connector
         # todo: fixed type problem by making load_p... generic. Potentially think about making it a decorator instead?
         self.step_config: ProcessingConfig = load_pydantic_config_from_file(  # type: ignore
@@ -62,9 +67,9 @@ class ProcessingStepFactory(StepFactoryInterface):
         )
 
 
-    def _get_run_args(self, shared_config) -> SKLearnProcessorRunArgs:
+    def _get_run_args(self, shared_config) -> PreProcessorRunArgs:
         input_path_s3 = f"s3://{shared_config.project_bucket_name}/{self.step_config.step_name}/{self.step_config.input_filename}"
-        skl_run_args = SKLearnProcessorRunArgs(
+        skl_run_args = PreProcessorRunArgs(
             inputs = [
                 ProcessingInput(
                     source=input_path_s3,
@@ -85,14 +90,15 @@ class ProcessingStepFactory(StepFactoryInterface):
                     source=f"/opt/ml/processing/test"
                 ),
             ],
-            code=f"code/{self.step_config.step_name}.py",
-            arguments=None # Todo: Decide whether this should come from configuration. May depend on type of step.
+            source_dir=f"code/{self.step_config.step_name}/",  # We hard-code directory name to simplify configs.
+            code=f"{self.step_config.step_name}.py",
+            # arguments=None # Todo: Decide whether this should come from configuration. May depend on type of step.
         )
         return skl_run_args
 
     # todo: Generalize types to other processors
     @cached_property
-    def processor(self) -> SKLearnProcessor:  # type: ignore
+    def processor(self) -> Processor:  # type: ignore
         """
         Instantiate processor, combining step-specific configs with configs from AWS connector.
 
@@ -107,6 +113,7 @@ class ProcessingStepFactory(StepFactoryInterface):
             base_job_name=self.step_config.step_name,
             sagemaker_session=self.aws_connector.sm_session,
             role=self.aws_connector.role_arn,
+            **self._processor_extra_kwargs,
         )  # type: ignore
 
     def create_step(self, shared_config: SharedConfig) -> ProcessingStep:
@@ -114,9 +121,9 @@ class ProcessingStepFactory(StepFactoryInterface):
         Note that this can only be run from the PipelineWrapper, because this factory does not have
         access to the shared configs.
         """
-        run_args: SKLearnProcessorRunArgs = self._get_run_args(shared_config=shared_config)
+        run_args: PreProcessorRunArgs = self._get_run_args(shared_config=shared_config)
         return ProcessingStep(
             name=self.step_config.step_name,
-            processor=self.processor,
+            step_args=self.processor.run(**run_args),  # type: ignore
             **run_args
         )

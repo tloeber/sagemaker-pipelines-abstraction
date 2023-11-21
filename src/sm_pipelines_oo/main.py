@@ -4,7 +4,9 @@ from pydantic_settings import BaseSettings
 from pathlib import Path
 
 from sagemaker.workflow.pipeline import Pipeline
-from sagemaker.sklearn.processing import SKLearnProcessor
+from sagemaker.sklearn.estimator import SKLearn
+from sagemaker.processing import FrameworkProcessor
+
 
 from sm_pipelines_oo.shared_config_schema import SharedConfig
 from sm_pipelines_oo.steps.pre_processing import ProcessingStepFactory
@@ -45,7 +47,8 @@ aws_connector: AWSConnectorInterface = create_aws_connector(
 # Create Step Factories
 # =====================
 pre_processing_step_factory = ProcessingStepFactory(
-    processor_cls=SKLearnProcessor,
+    processor_cls=FrameworkProcessor,
+    processor_extra_kwargs={'estimator_cls': SKLearn},
     step_config_path=config_path_pre_processing,
     aws_connector=aws_connector,
 )
@@ -54,16 +57,17 @@ pre_processing_step_factory = ProcessingStepFactory(
 # Running processing step directly
 # ================================
 
-proccessing_step = pre_processing_step_factory.create_step(
-    shared_config=shared_config,
-)
 pre_processor = pre_processing_step_factory.processor
 run_args = pre_processing_step_factory._get_run_args(shared_config=shared_config)
-pre_processor.run(**run_args)
+pre_processor.run(**run_args)  # type: ignore
 
 
 # # Create Pipeline
 # # ===============
+pre_proccessing_step = pre_processing_step_factory.create_step(
+    shared_config=shared_config,
+)
+
 pipeline = PipelineWrapper(
     step_factories=[
         pre_processing_step_factory,
@@ -77,3 +81,6 @@ pipeline = PipelineWrapper(
 # # Run Pipeline
 # # =============
 # pipeline.run()
+
+
+logger.info('Finished')

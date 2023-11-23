@@ -121,9 +121,10 @@ class ProcessingStepFactory(StepFactoryInterface):
         Note that this can only be run from the PipelineWrapper, because this factory does not have
         access to the shared configs.
         """
-        run_args: PreProcessorRunArgs = self._get_run_args(shared_config=shared_config)
+        step_args = self.processor.run(
+            **self._get_run_args(shared_config=shared_config)
+        )
         return ProcessingStep(
             name=self.step_config.step_name,
-            step_args=self.processor.run(**run_args),  # type: ignore
-            **run_args
+            step_args=step_args,  # type: ignore
         )

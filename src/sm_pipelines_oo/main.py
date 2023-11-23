@@ -20,6 +20,9 @@ from sm_pipelines_oo.connector.interface import AWSConnectorInterface
 from sm_pipelines_oo.connector.implementation import create_aws_connector
 from sm_pipelines_oo.pipeline_wrapper import PipelineWrapper
 
+# Whether to run through SM Pipeline, or to run steps directly.
+RUN_AS_PIPELINE = True
+
 
 # Load configs
 # ============
@@ -42,6 +45,7 @@ shared_config: SharedConfig = load_pydantic_config_from_file(  # type: ignore
 aws_connector: AWSConnectorInterface = create_aws_connector(
     environment=ENVIRONMENT,
     shared_config=shared_config,
+    run_as_pipeline=RUN_AS_PIPELINE,
 )
 
 # Create Step Factories
@@ -53,34 +57,24 @@ pre_processing_step_factory = ProcessingStepFactory(
     aws_connector=aws_connector,
 )
 
+if RUN_AS_PIPELINE:
+    pre_proccessing_step = pre_processing_step_factory.create_step(
+        shared_config=shared_config,
+    )
+    pipeline = PipelineWrapper(
+        step_factories=[
+            pre_processing_step_factory,
+        ],
+        environment=ENVIRONMENT,
+        shared_config=shared_config,
+        aws_connector=aws_connector,
+    )
+    pipeline.run()
 
 # Running processing step directly
-# ================================
-
-pre_processor = pre_processing_step_factory.processor
-run_args = pre_processing_step_factory._get_run_args(shared_config=shared_config)
-pre_processor.run(**run_args)  # type: ignore
-
-
-# # Create Pipeline
-# # ===============
-pre_proccessing_step = pre_processing_step_factory.create_step(
-    shared_config=shared_config,
-)
-
-pipeline = PipelineWrapper(
-    step_factories=[
-        pre_processing_step_factory,
-    ],
-    environment=ENVIRONMENT,
-    shared_config=shared_config,
-    aws_connector=aws_connector,
-)
-
-
-# # Run Pipeline
-# # =============
-# pipeline.run()
-
+else:
+    pre_processor = pre_processing_step_factory.processor
+    run_args = pre_processing_step_factory._get_run_args(shared_config=shared_config)
+    pre_processor.run(**run_args)  # type: ignore
 
 logger.info('Finished')

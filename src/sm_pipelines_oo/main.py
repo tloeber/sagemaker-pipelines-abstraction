@@ -1,9 +1,6 @@
 from loguru import logger
-from typing import Literal
-from pydantic_settings import BaseSettings
 from pathlib import Path
 
-from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.sklearn.estimator import SKLearn
 from sagemaker.processing import FrameworkProcessor
 
@@ -21,14 +18,14 @@ from sm_pipelines_oo.connector.implementation import create_aws_connector
 from sm_pipelines_oo.pipeline_wrapper import PipelineWrapper
 
 # Whether to run through SM Pipeline, or to run steps directly.
-RUN_AS_PIPELINE = True
+RUN_AS_PIPELINE = False
 
 
 # Load configs
 # ============
 # Todo: Pipeline (Wrapper?) object should take config directory as an init argument and be able to
 # load config itself, so that we don't have to do this here.
-ENVIRONMENT: Environment = BootstrapConfig().ENVIRONMENT  # type: ignore
+ENVIRONMENT: Environment = 'dev'  # BootstrapConfig().ENVIRONMENT  # type: ignore
 logger.info(f"Loaded configs for environment: {ENVIRONMENT}")
 
 config_path_shared = f"configs/{ENVIRONMENT}/.env_shared"
@@ -69,12 +66,17 @@ if RUN_AS_PIPELINE:
         shared_config=shared_config,
         aws_connector=aws_connector,
     )
-    pipeline.run()
-
+    try:
+        pipeline.run()
+    except Exception as e:
+        logger.error(e)
 # Running processing step directly
 else:
     pre_processor = pre_processing_step_factory.processor
     run_args = pre_processing_step_factory._get_run_args(shared_config=shared_config)
-    pre_processor.run(**run_args)  # type: ignore
+    try:
+        pre_processor.run(**run_args)  # type: ignore
+    except Exception as e:
+        logger.error(e)
 
 logger.info('Finished')

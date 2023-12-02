@@ -10,6 +10,7 @@ from sagemaker.processing import Processor, FrameworkProcessor
 
 # from sagemaker.sklearn.processing import SKLearnProcessor
 from sagemaker.workflow.steps import ProcessingStep
+from sagemaker.workflow.pipeline_context import _JobStepArguments
 from sagemaker.workflow.entities import PipelineVariable
 from pydantic_settings import BaseSettings
 
@@ -37,13 +38,13 @@ class ProcessingConfig(BaseSettings):
 #         ...
 
 
-# @dataclass
+
 class PreProcessorRunArgs(TypedDict):
     inputs: list[ProcessingInput]
     outputs: list[ProcessingOutput]
     source_dir: str
     code: str
-    # arguments: list[str] | None
+    arguments: list[str] | None
 
 # Register SKLearnProcessorRunArgs as a virtual subclass of RunArgs
 # RunArgs.register(SKLearnProcessorRunArgs)
@@ -92,7 +93,7 @@ class ProcessingStepFactory(StepFactoryInterface):
             ],
             source_dir=f"code/{self.step_config.step_name}/",  # We hard-code directory name to simplify configs.
             code=f"{self.step_config.step_name}.py",
-            # arguments=None # Todo: Decide whether this should come from configuration. May depend on type of step.
+            arguments=None # Todo: Decide whether this should come from configuration. May depend on type of step.
         )
         return skl_run_args
 
@@ -121,7 +122,7 @@ class ProcessingStepFactory(StepFactoryInterface):
         Note that this can only be run from the PipelineWrapper, because this factory does not have
         access to the shared configs.
         """
-        step_args = self.processor.run(
+        step_args: _JobStepArguments = self.processor.run(
             **self._get_run_args(shared_config=shared_config)
         )
         return ProcessingStep(

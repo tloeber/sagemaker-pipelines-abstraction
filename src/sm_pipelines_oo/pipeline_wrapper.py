@@ -35,7 +35,7 @@ class PipelineWrapper:
             self.steps.append(step)
 
     @cached_property
-    def _pipeline(self):
+    def _pipeline(self) -> Pipeline:
         pipeline_name = f'{self.shared_config.project_name}-{datetime.now():%Y-%m-%d-%H-%M-%S}'
         pipeline = Pipeline(
             name=pipeline_name,

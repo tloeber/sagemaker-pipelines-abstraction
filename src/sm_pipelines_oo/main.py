@@ -6,7 +6,7 @@ from sagemaker.processing import FrameworkProcessor
 
 
 from sm_pipelines_oo.shared_config_schema import SharedConfig
-from sm_pipelines_oo.steps.pre_processing import ProcessingStepFactory
+from sm_pipelines_oo.steps.pre_processing import ProcessingStepFactory, StepFactory
 # from sm_pipelines_oo.steps.model_training import train_step
 # from sm_pipelines_oo.steps.model_evaluation import eval_step
 # from sm_pipelines_oo.steps.model_registration import condition_step
@@ -70,10 +70,11 @@ if RUN_AS_PIPELINE:
         pipeline.run()
     except Exception as e:
         logger.error(e)
+
 # Running processing step directly
 else:
     pre_processor = pre_processing_step_factory.processor
-    run_args = pre_processing_step_factory._get_run_args(shared_config=shared_config)
+    run_args = pre_processing_step_factory.get_processor_run_args(shared_config=shared_config)
     try:
         pre_processor.run(**run_args)  # type: ignore
     except Exception as e:

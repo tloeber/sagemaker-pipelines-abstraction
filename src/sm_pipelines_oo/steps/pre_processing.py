@@ -3,7 +3,8 @@ from pathlib import Path
 from dataclasses import dataclass
 from functools import cached_property
 
-from typing import TypedDict, TypeAlias, Any
+from typing import TypedDict, TypeAlias, Any, Generic, TypeVar
+
 from loguru import logger
 from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.processing import Processor, FrameworkProcessor
@@ -15,7 +16,7 @@ from sagemaker.workflow.entities import PipelineVariable
 from pydantic_settings import BaseSettings
 
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
-from sm_pipelines_oo.shared_config_schema import Environment, SharedConfig
+from sm_pipelines_oo.shared_config_schema import SharedConfig
 from sm_pipelines_oo.pipeline_wrapper import AWSConnectorInterface
 from sm_pipelines_oo.steps.interfaces import StepFactoryInterface
 
@@ -39,12 +40,16 @@ class ProcessingConfig(BaseSettings):
 
 
 
-class PreProcessorRunArgs(TypedDict):
+class ProcessorRunArgs(TypedDict):
     inputs: list[ProcessingInput]
     outputs: list[ProcessingOutput]
+    arguments: list[str] | None
+
+class FrameworkProcessorRunArgs(ProcessorRunArgs):
+    # Additional args for FrameworkProcessor:
     source_dir: str
     code: str
-    arguments: list[str] | None
+
 
 # Register SKLearnProcessorRunArgs as a virtual subclass of RunArgs
 # RunArgs.register(SKLearnProcessorRunArgs)
@@ -68,9 +73,9 @@ class ProcessingStepFactory(StepFactoryInterface):
         )
 
 
-    def _get_run_args(self, shared_config) -> PreProcessorRunArgs:
+    def get_processor_run_args(self, shared_config: SharedConfig) -> ProcessorRunArgs:
         input_path_s3 = f"s3://{shared_config.project_bucket_name}/{self.step_config.step_name}/{self.step_config.input_filename}"
-        skl_run_args = PreProcessorRunArgs(
+        skl_run_args = ProcessorRunArgs(
             inputs = [
                 ProcessingInput(
                     source=input_path_s3,
@@ -122,10 +127,28 @@ class ProcessingStepFactory(StepFactoryInterface):
         Note that this can only be run from the PipelineWrapper, because this factory does not have
         access to the shared configs.
         """
-        step_args: _JobStepArguments = self.processor.run(
-            **self._get_run_args(shared_config=shared_config)
-        )
+        run_args: ProcessorRunArgs = self.get_processor_run_args(shared_config=shared_config)
+        step_args: _JobStepArguments = self.processor.run(**run_args)
         return ProcessingStep(
             name=self.step_config.step_name,
             step_args=step_args,  # type: ignore
         )
+
+# class StepFactory:
+#     def __init__(
+#         self,
+#         run_args,
+#         step_args,
+#         step_class,
+#         step_name,
+#     ):
+#         self.run_args = run_args
+#         self.step_args = step_args
+#         self.step_class = step_class
+#         self.step_name = step_name
+
+#     def create_step(self):
+#         return self.step_class(
+#             name=self.step_name,
+#             step_args=self.step_args,
+#         )

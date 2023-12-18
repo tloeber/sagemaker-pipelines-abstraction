@@ -7,6 +7,11 @@
 	"settings": {
 		"python.defaultInterpreterPath": "~/.cache/pypoetry/virtualenvs/sm-pipelines-oo-tWfBw0_D-py3.10/bin/python",
 		"terminal.integrated.cwd": "src/sm_pipelines_oo",
+		// Scala
+		"files.watcherExclude": {
+			"**/target": true,
+			".metals/": true,
+		},
 	},
 	"launch": {
 		"version": "0.2.0",

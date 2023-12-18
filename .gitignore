@@ -134,6 +134,10 @@ dmypy.json
 # Since statefiles may contain secrets
 **.tfstate
 
+# Scala
+.metals/
+**/target/
+
 # Other
 # ===
 # img/ is *not* ignored -> put images to commit there.

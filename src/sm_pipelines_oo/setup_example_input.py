@@ -1,3 +1,7 @@
+# Required since boto3-stubs are not runtime dependency: https://mypy.readthedocs.io/en/stable/runtime_troubles.html#future-annotations-import-pep-563
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 from pathlib import Path
 
 from loguru import logger
@@ -8,6 +12,9 @@ import awswrangler as wr
 
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
 from sm_pipelines_oo.shared_config_schema import BootstrapConfig, SharedConfig, Environment
+
+if TYPE_CHECKING:
+    from mypy_boto3_s3.client import S3Client
 
 
 # Load configs
@@ -29,7 +36,7 @@ shared_config: SharedConfig = load_pydantic_config_from_file(  # type: ignore
 
 def write_parquet_to_s3(df: pd.DataFrame, path: str, **kwargs) -> None:
     # Client is needed to catch error. See https://github.com/boto/boto3/issues/1195
-    s3_client = boto3.client('s3')
+    s3_client: S3Client = boto3.client('s3')
     try:
         wr.s3.to_parquet(
             df=iris_df,

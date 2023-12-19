@@ -1,8 +1,16 @@
+# Required since boto3-stubs are not runtime dependency: https://mypy.readthedocs.io/en/stable/runtime_troubles.html#future-annotations-import-pep-563
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from functools import cached_property
 
 import boto3
 from sagemaker.session import Session, get_execution_role
 from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSession
+if TYPE_CHECKING:
+    from mypy_boto3_sagemaker.client import SageMakerClient
+    from mypy_boto3_sagemaker_runtime.client import SageMakerRuntimeClient
+    from mypy_boto3_sts.client import STSClient
+
 
 from sm_pipelines_oo.shared_config_schema import SharedConfig, Environment
 from sm_pipelines_oo.connector.interface import AWSConnectorInterface
@@ -50,16 +58,16 @@ class AWSConnector(AWSConnectorInterface):
             )
 
     @cached_property
-    def sm_client(self):
+    def sm_client(self) -> SageMakerClient:
         return self._boto_session.client("sagemaker")
 
     @cached_property
-    def sm_runtime_client(self):
+    def sm_runtime_client(self) -> SageMakerRuntimeClient:
         return self._boto_session.client("sagemaker-runtime")
 
     @cached_property
-    def aws_account_id(self) -> int:
-        sts_client = boto3.client("sts")
+    def aws_account_id(self) -> str:
+        sts_client: STSClient = boto3.client("sts")
         return sts_client.get_caller_identity()["Account"]
 
 

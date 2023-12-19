@@ -3,10 +3,8 @@ from pathlib import Path
 
 from sagemaker.sklearn.estimator import SKLearn
 from sagemaker.processing import FrameworkProcessor
-
-
 from sm_pipelines_oo.shared_config_schema import SharedConfig
-from sm_pipelines_oo.steps.pre_processing import ProcessingStepFactory, StepFactory
+from sm_pipelines_oo.steps.pre_processing import ProcessingStepFactory
 # from sm_pipelines_oo.steps.model_training import train_step
 # from sm_pipelines_oo.steps.model_evaluation import eval_step
 # from sm_pipelines_oo.steps.model_registration import condition_step
@@ -55,9 +53,6 @@ pre_processing_step_factory = ProcessingStepFactory(
 )
 
 if RUN_AS_PIPELINE:
-    pre_proccessing_step = pre_processing_step_factory.create_step(
-        shared_config=shared_config,
-    )
     pipeline = PipelineWrapper(
         step_factories=[
             pre_processing_step_factory,

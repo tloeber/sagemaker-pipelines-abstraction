@@ -3691,6 +3691,28 @@ files = [
 ]
 
 [[package]]
+name = "types-openpyxl"
+version = "3.1.0.32"
+description = "Typing stubs for openpyxl"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "types-openpyxl-3.1.0.32.tar.gz", hash = "sha256:3d37da6490fc4ed04f1d79c0f523b31197d559043cbc90cbd15acab542a0267b"},
+    {file = "types_openpyxl-3.1.0.32-py3-none-any.whl", hash = "sha256:d347f177783dde0f3970aa4a32f808932a269f93809aa953a2bf33bc92b25eb1"},
+]
+
+[[package]]
+name = "types-pillow"
+version = "10.1.0.2"
+description = "Typing stubs for Pillow"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "types-Pillow-10.1.0.2.tar.gz", hash = "sha256:525c1c5ee67b0ac1721c40d2bc618226ef2123c347e527e14e05b920721a13b9"},
+    {file = "types_Pillow-10.1.0.2-py3-none-any.whl", hash = "sha256:131078ffa547bf9a201d39ffcdc65633e108148085f4f1b07d4647fcfec6e923"},
+]
+
+[[package]]
 name = "types-pytz"
 version = "2023.3.1.1"
 description = "Typing stubs for pytz"
@@ -3700,6 +3722,20 @@ files = [
     {file = "types-pytz-2023.3.1.1.tar.gz", hash = "sha256:cc23d0192cd49c8f6bba44ee0c81e4586a8f30204970fc0894d209a6b08dab9a"},
     {file = "types_pytz-2023.3.1.1-py3-none-any.whl", hash = "sha256:1999a123a3dc0e39a2ef6d19f3f8584211de9e6a77fe7a0259f04a524e90a5cf"},
 ]
+
+[[package]]
+name = "types-requests"
+version = "2.31.0.10"
+description = "Typing stubs for requests"
+optional = false
+python-versions = ">=3.7"
+files = [
+    {file = "types-requests-2.31.0.10.tar.gz", hash = "sha256:dc5852a76f1eaf60eafa81a2e50aefa3d1f015c34cf0cba130930866b1b22a92"},
+    {file = "types_requests-2.31.0.10-py3-none-any.whl", hash = "sha256:b32b9a86beffa876c0c3ac99a4cd3b8b51e973fb8e3bd4e0a6bb32c7efad80fc"},
+]
+
+[package.dependencies]
+urllib3 = ">=2"
 
 [[package]]
 name = "types-s3transfer"
@@ -3915,4 +3951,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <3.12"
-content-hash = "06f324e712bbf67d464cd29c82e65eaed838a4cb12c3b2c1864be7047ab2c83f"
+content-hash = "8d1369e4d79b002e1c0d9014753b290426791189d56530541f5dcf135125334a"

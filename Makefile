@@ -19,6 +19,11 @@ setup:
 update:
 	python3 -m poetry update
 
+find-missing-typestubs:
+	@echo "Looking for missing type stubs. If any, abort install using 'N' and install directly "
+	@echo "using 'poetry add --group dev <packages>'"
+	@mypy --install-types
+
 test:
 	poetry run pytest
 

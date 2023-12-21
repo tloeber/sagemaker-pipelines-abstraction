@@ -62,6 +62,7 @@ class ProcessingStepFactory(StepFactoryInterface):
         processor_extra_kwargs: dict[str, Any],
         step_config_path: Path,  # Path to .env file containing configurations for this step.
         aws_connector: AWSConnectorInterface,
+        data_locations: DataLocations,
     ):
         self._processor_cls = processor_cls
         self._processor_extra_kwargs = processor_extra_kwargs
@@ -71,20 +72,18 @@ class ProcessingStepFactory(StepFactoryInterface):
             config_cls=ProcessingConfig,
             config_path=str(step_config_path),
         )
+        self.data_locations = data_locations
 
 
-    def get_processor_run_args(self, shared_config: SharedConfig) -> ProcessorRunArgs:
-        ## Construct *step-specific* folder names (for both s3 and local)
-        # Note that `/opt/ml/${STEP_TYPE}/` is *required* by Sagemaker.
-        local_folderpath: str = get_local_folderpath(step_config=self.step_config)
-        s3_folderpaths: S3InputOutputFolders = get_s3_folderpaths(
-            step_config=self.step_config,
-            shared_config=shared_config,
-        )
+    def get_processor_run_args(self) -> ProcessorRunArgs:
+        s3_input_folder = self.data_locations.s3_input_folder
+        s3_output_folder = self.data_locations.s3_output_folder
+        local_folderpath = self.data_locations.local_folderpath
+
         skl_run_args = ProcessorRunArgs(
             inputs = [
                 ProcessingInput(
-                    source=f'{s3_folderpaths.input_folder}/{self.step_config.input_filename}',
+                    source=f'{s3_input_folder}/{self.step_config.input_filename}',
                     destination=f"{local_folderpath}/input/"
                 ),
             ],
@@ -92,17 +91,17 @@ class ProcessingStepFactory(StepFactoryInterface):
                 ProcessingOutput(
                     output_name="train",
                     source=f"/{local_folderpath}/train",
-                    destination=f"{s3_folderpaths.output_folder}/train",
+                    destination=f"{s3_output_folder}/train",
                 ),
                 ProcessingOutput(
                     output_name="validation",
                     source=f"/{local_folderpath}/validation",
-                    destination=f"{s3_folderpaths.output_folder}/validation",
+                    destination=f"{s3_output_folder}/validation",
                 ),
                 ProcessingOutput(
                     output_name="test",
                     source=f"/{local_folderpath}/test",
-                    destination=f"{s3_folderpaths.output_folder}/test",
+                    destination=f"{s3_output_folder}/test",
                 ),
             ],
             source_dir=f"code/{self.step_config.step_name}/",  # We hard-code directory name to simplify configs.

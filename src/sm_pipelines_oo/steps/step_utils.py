@@ -1,50 +1,62 @@
-from dataclasses import dataclass
+# Required to not make steps.preprocessing a runtime dependency, avoiding a circular import.
+# See https://mypy.readthedocs.io/en/stable/runtime_troubles.html#future-annotations-import-pep-563
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+from pathlib import Path
+from functools import cached_property
 
 from sm_pipelines_oo.shared_config_schema import SharedConfig
-# todo: use general step config, once stable
-from sm_pipelines_oo.steps.pre_processing import ProcessingConfig
+
+if TYPE_CHECKING:
+    # Avoid circular import
+    # todo: use general step config, once stable
+    from sm_pipelines_oo.steps.pre_processing import ProcessingConfig
 
 
-# S3 Folder Paths
-# ==============
+class DataLocations:
+    # todo: use general step config, once stable
+    def __init__(self, step_config: ProcessingConfig, shared_config: SharedConfig):
+        self._step_config = step_config
+        self._shared_config = shared_config
 
-@dataclass(frozen=True, kw_only=True, slots=True)
-class S3InputOutputFolders:
-    """
-    This provides a type-safe way to pass input- and output folders between methods as a single
-    object.
-    """
-    input_folder: str
-    output_folder: str
+    # S3 Folder Paths
+    # ===============
 
+    @cached_property
+    def _default_s3_data_folder(self) -> str:
+        default_bucket_name = self._shared_config.project_bucket_name
+        project_version = self._shared_config.project_version
+        step_name = self._step_config.step_name
+        return f"s3://{default_bucket_name}/{project_version}/{step_name}"
 
-# todo: use general step config, once stable
-def get_s3_folderpaths(
-        step_config: ProcessingConfig,
-        shared_config: SharedConfig
-) -> S3InputOutputFolders:
-    """
-    Construct Path to S3 folder for input and output from shared and step-specific config. If a
-    custom S3 path is specified, it overrides the default path.
-    """
-    default_data_folder = "s3://{}/{}/{}".format(  # pylint: disable=consider-using-f-string
-        shared_config.project_bucket_name,
-        shared_config.project_version,
-        step_config.step_name
-    )
-    # Use custom input folder if provided, otherwise use default
-    input_folder: str = step_config.input_s3_dir or f'{default_data_folder}/input'
-    output_folder: str = step_config.output_s3_dir or f'{default_data_folder}/output'
+    @cached_property
+    def s3_input_folder(self) -> str:
+        """
+        Returns custom s3 folder with input data, if provided. Otherwise returns default s3 input
+        folder.
+        """
+        custom_s3_folder: str | None = self._step_config.input_s3_dir
+        default_s3_folder = f"{self._default_s3_data_folder}/input"
+        return  custom_s3_folder or default_s3_folder
 
-    return S3InputOutputFolders(
-        input_folder=input_folder,
-        output_folder=output_folder
-    )
+    @cached_property
+    def s3_output_folder(self) -> str:
+        """
+        Returns custom s3 folder with output data, if provided. Otherwise returns default s3 output
+        folder.
+        """
+        custom_s3_folder: str | None = self._step_config.output_s3_dir
+        default_s3_folder = f'{self._default_s3_data_folder}/output'
+        return  custom_s3_folder or default_s3_folder
 
+    # Local Folder Paths
+    # =================
 
-# Local Folder Paths
-# =================
-
-# todo: use general step config, once stable
-def get_local_folderpath(step_config: ProcessingConfig) -> str:
-    return f'/opt/ml/{step_config.step_type}/{step_config.step_name}'
+    @cached_property
+    def local_folderpath(self) -> str:
+        # Note that `/opt/ml/${STEP_TYPE}/` is *required* by Sagemaker.
+        # todo: Use more precise type annotation? (Create type for StepType)
+        step_type: str = self._step_config.step_type
+        step_name: str = self._step_config.step_name
+        return f'/opt/ml/{step_type}/{step_name}'

@@ -74,26 +74,35 @@ class ProcessingStepFactory(StepFactoryInterface):
 
 
     def get_processor_run_args(self, shared_config: SharedConfig) -> ProcessorRunArgs:
-        input_path_s3 = f"s3://{shared_config.project_bucket_name}/{self.step_config.step_name}/{self.step_config.input_filename}"
+        ## Construct *step-specific* folder names (for both s3 and local)
+        # Note that `/opt/ml/${STEP_TYPE}/` is *required* by Sagemaker.
+        local_folderpath: str = get_local_folderpath(step_config=self.step_config)
+        s3_folderpaths: S3InputOutputFolders = get_s3_folderpaths(
+            step_config=self.step_config,
+            shared_config=shared_config,
+        )
         skl_run_args = ProcessorRunArgs(
             inputs = [
                 ProcessingInput(
-                    source=input_path_s3,
-                    destination=f"/opt/ml/processing/input"
+                    source=f'{s3_folderpaths.input_folder}/{self.step_config.input_filename}',
+                    destination=f"{local_folderpath}/input/"
                 ),
             ],
             outputs = [
                 ProcessingOutput(
                     output_name="train",
-                    source=f"/opt/ml/processing/train"
+                    source=f"/{local_folderpath}/train",
+                    destination=f"{s3_folderpaths.output_folder}/train",
                 ),
                 ProcessingOutput(
                     output_name="validation",
-                    source=f"/opt/ml/processing/validation"
+                    source=f"/{local_folderpath}/validation",
+                    destination=f"{s3_folderpaths.output_folder}/validation",
                 ),
                 ProcessingOutput(
                     output_name="test",
-                    source=f"/opt/ml/processing/test"
+                    source=f"/{local_folderpath}/test",
+                    destination=f"{s3_folderpaths.output_folder}/test",
                 ),
             ],
             source_dir=f"code/{self.step_config.step_name}/",  # We hard-code directory name to simplify configs.

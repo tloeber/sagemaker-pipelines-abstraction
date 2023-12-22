@@ -24,6 +24,10 @@ find-missing-typestubs:
 	@echo "using 'poetry add --group dev <packages>'"
 	@mypy --install-types
 
+mark-sagemaker-sdk-as-typed:
+	@python_dir=$$(poetry env info --path); \
+	touch $${python_dir}/lib/python3.10/site-packages/sagemaker/py.typed
+
 test:
 	poetry run pytest
 

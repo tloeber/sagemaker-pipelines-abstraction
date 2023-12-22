@@ -13,6 +13,10 @@ setup:
 	@echo "\"settings\": {\"python.defaultInterpreterPath\": \"$(python3 -m poetry env info --executable)\"}"
 	@echo "(This way you don't have to manually activate it for each shell using `python3 -m poetry shell`)"
 
+	@# This needs to happen *afer* installing sagemaker-sdk
+	python3 -m poetry shell
+	make mark-sagemaker-sdk-as-typed
+
 	@# Create kernel spec (so we can use Scala in Jupyter notebooks)
 	python -m spylon_kernel install --user
 

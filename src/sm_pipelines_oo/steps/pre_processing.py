@@ -16,6 +16,7 @@ from sagemaker.workflow.entities import PipelineVariable
 from pydantic_settings import BaseSettings
 
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
+from sm_pipelines_oo.steps.step_utils import PathFactory
 from sm_pipelines_oo.shared_config_schema import SharedConfig
 from sm_pipelines_oo.pipeline_wrapper import AWSConnectorInterface
 from sm_pipelines_oo.steps.interfaces import StepFactoryInterface
@@ -25,19 +26,13 @@ class ProcessingConfig(BaseSettings):
     instance_type: str
     instance_count: int
     sklearn_framework_version: str
-    step_name: str = "Process"
-
-
-# class RunArgs(ABC):
-#     """This serves as an abstract supertype for all permissible concrete types of RunArgs."""
-#     @abstractmethod
-#     def as_dict():
-#         """
-#         Don't have to implement this ourselves if we use a dataclass, which already contains this
-#         method.
-#         """
-#         ...
-
+    # Don't set in config. This needs to correspond to SM's convention for local folder structure.
+    # todo: Make this not set-able. Use property instead?
+    step_type: Literal['processing'] = "processing"
+    step_name: str = "processing"
+    # Ability to override default S3 bucket (and path)
+    input_s3_dir: str | None = None
+    output_s3_dir: str | None = None
 
 
 class ProcessorRunArgs(TypedDict):
@@ -72,18 +67,18 @@ class ProcessingStepFactory(StepFactoryInterface):
             config_cls=ProcessingConfig,
             config_path=str(step_config_path),
         )
-        self.data_locations = data_locations
+        self.path_factory = path_factory
 
 
     def get_processor_run_args(self) -> ProcessorRunArgs:
-        s3_input_folder = self.data_locations.s3_input_folder
-        s3_output_folder = self.data_locations.s3_output_folder
-        local_folderpath = self.data_locations.local_folderpath
+        s3_input_folder: str = self.path_factory.s3_input_folder
+        s3_output_folder: str = self.path_factory.s3_output_folder
+        local_folderpath: str = self.path_factory.local_folderpath
 
         skl_run_args = ProcessorRunArgs(
             inputs = [
                 ProcessingInput(
-                    source=f'{s3_input_folder}/{self.step_config.input_filename}',
+                    source=s3_input_folder,
                     destination=f"{local_folderpath}/input/"
                 ),
             ],
@@ -104,8 +99,8 @@ class ProcessingStepFactory(StepFactoryInterface):
                     destination=f"{s3_output_folder}/test",
                 ),
             ],
-            source_dir=f"code/{self.step_config.step_name}/",  # We hard-code directory name to simplify configs.
-            code=f"{self.step_config.step_name}.py",
+            source_dir=self.path_factory.source_dir,
+            code=self.path_factory.step_code_file,
             arguments=None # Todo: Decide whether this should come from configuration. May depend on type of step.
         )
         return skl_run_args

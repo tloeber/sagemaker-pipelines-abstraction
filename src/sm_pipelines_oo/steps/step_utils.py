@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from sm_pipelines_oo.steps.pre_processing import ProcessingConfig
 
 
-class DataLocations:
+class PathFactory:
     # todo: use general step config, once stable
     def __init__(self, step_config: ProcessingConfig, shared_config: SharedConfig):
         self._step_config = step_config
@@ -60,3 +60,13 @@ class DataLocations:
         step_type: str = self._step_config.step_type
         step_name: str = self._step_config.step_name
         return f'/opt/ml/{step_type}/{step_name}'
+
+    @property
+    def source_dir(self) -> str:
+        # Hard-code source_directory name to simplify configs.
+        return f"code/{self._step_config.step_name}/"
+
+    @property
+    def step_code_file(self) -> str:
+        # Hard-code name of step's code file to simplify configs.
+        return f"{self._step_config.step_name}.py"

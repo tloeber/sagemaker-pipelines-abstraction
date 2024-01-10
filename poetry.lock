@@ -2608,6 +2608,16 @@ files = [
 numpy = ">=1.16.6"
 
 [[package]]
+name = "pyarrow-stubs"
+version = "10.0.1.7"
+description = "Type annotations for pyarrow"
+optional = false
+python-versions = ">=3.7,<4.0"
+files = [
+    {file = "pyarrow_stubs-10.0.1.7-py3-none-any.whl", hash = "sha256:cccc7a46eddeea4e3cb85330eb8972c116a615da6188b8ae1f7a44cb724b21ac"},
+]
+
+[[package]]
 name = "pycparser"
 version = "2.21"
 description = "C parser in Python"
@@ -3942,4 +3952,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <3.12"
-content-hash = "8d1369e4d79b002e1c0d9014753b290426791189d56530541f5dcf135125334a"
+content-hash = "653ee9fb189af53f0575cbcf002291716a6e0389648600c13a8aae38236adc35"

@@ -1,4 +1,4 @@
-# Required since boto3-stubs are not runtime dependency: https://mypy.readthedocs.io/en/stable/runtime_troubles.html#future-annotations-import-pep-563
+# Required to not make boto3-stubs a runtime dependency: https://mypy.readthedocs.io/en/stable/runtime_troubles.html#future-annotations-import-pep-563
 from __future__ import annotations
 from typing import TYPE_CHECKING
 

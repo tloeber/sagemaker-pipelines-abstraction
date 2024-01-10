@@ -1,8 +1,9 @@
-# Required since boto3-stubs are not runtime dependency: https://mypy.readthedocs.io/en/stable/runtime_troubles.html#future-annotations-import-pep-563
+# Required to not make boto3-stubs a runtime dependency: https://mypy.readthedocs.io/en/stable/runtime_troubles.html#future-annotations-import-pep-563
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from functools import cached_property
 
+from loguru import logger
 import boto3
 from sagemaker.session import Session, get_execution_role
 from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSession
@@ -67,6 +68,7 @@ class AWSConnector(AWSConnectorInterface):
 
     @cached_property
     def aws_account_id(self) -> str:
+        # todo: use value in configs, if specified?
         sts_client: STSClient = boto3.client("sts")
         return sts_client.get_caller_identity()["Account"]
 
@@ -80,7 +82,9 @@ class AWSConnector(AWSConnectorInterface):
         provided_role_name: str | None = self.shared_config.role_name
 
         if provided_role_name is None:
-            return get_execution_role(self.sm_session)
+            current_role =  get_execution_role(self.sm_session)
+            logger.debug(f'role: {current_role}')
+            return current_role
         else:
             return f'arn:aws:iam::{self.aws_account_id}:role/{provided_role_name}'
 

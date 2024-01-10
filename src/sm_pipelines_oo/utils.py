@@ -3,10 +3,14 @@ from pydantic import ValidationError
 from pydantic_settings import BaseSettings
 from loguru import logger
 
-# todo: Make return type more specific, because we know it will be a specific subtype of
+# todo (first): Make return type more specific, because we know it will be a specific subtype of
 #  BaseSettings, namely config_cls. Potential solution: Make this function generic in
 #  config_cls (constrained by BaseSettings)?
-def load_pydantic_config_from_file(config_cls: type[BaseSettings], config_path: str) -> BaseSettings:
+# todo (second): check if we can use decorator pattern to avoid load_pydantic_config_from_file().
+def load_pydantic_config_from_file(
+        config_cls: type[BaseSettings],
+        config_path: str,  # todo: Make this a Path
+) -> BaseSettings:
     """Load settings from a .env file."""
     try:
         return config_cls(_env_file=config_path)

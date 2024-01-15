@@ -1,0 +1,3 @@
+One advantages of properties that is not usually discussed in the comparison of the two is that properties can be part of an interface. This is often the primary reason for me to use properties here.
+
+By contrast, in Java, you would have to define getters (and potentially setters) to model this, since object attributes cannot be part of an interface definition. I can think of really any downside of using getters (since it wouldn't add any verbosity compared to properties), except that it is less Pythonic. (The common argument that properties allow you to go back and forth between attributes and properties if needed does not apply here, since we can move to attributes anyway if we use interfaces).

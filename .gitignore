@@ -143,8 +143,8 @@ dmypy.json
 # img/ is *not* ignored -> put images to commit there.
 images/*
 **/tmp/
+**/_tmp/
 **_tmp.*
-**/_old/
 
 # Tmp
 # ===

@@ -1,9 +1,10 @@
+from abc import ABC, abstractmethod
 import os
 from pathlib import Path
 from dataclasses import dataclass
 from functools import cached_property
 
-from typing import TypedDict, TypeAlias, Any, Generic, TypeVar
+from typing import TypedDict, TypeAlias, Any, Generic, TypeVar, Literal
 
 from loguru import logger
 from sagemaker.processing import ProcessingInput, ProcessingOutput
@@ -21,8 +22,12 @@ from sm_pipelines_oo.shared_config_schema import SharedConfig
 from sm_pipelines_oo.pipeline_wrapper import AWSConnectorInterface
 from sm_pipelines_oo.steps.interfaces import StepFactoryInterface
 
+
 class ProcessingConfig(BaseSettings):
     input_filename: str
+    output_train_filename: str
+    output_val_filename: str
+    output_test_filename: str
     instance_type: str
     instance_count: int
     sklearn_framework_version: str
@@ -46,9 +51,26 @@ class FrameworkProcessorRunArgs(ProcessorRunArgs):
     code: str
 
 
-# Register SKLearnProcessorRunArgs as a virtual subclass of RunArgs
-# RunArgs.register(SKLearnProcessorRunArgs)
+class ProcessorWrapperInterface(ABC):
+    @abstractmethod
+    def run(self, **RunArgs):
+        pass
 
+    @abstractmethod
+    def get_run_args(self, shared_config: SharedConfig) -> ProcessorRunArgs:
+        pass
+
+class FrameworkProcessorWrapper(ProcessorWrapperInterface):
+    def __init__(
+        self,
+        processor_cls,
+        processor_extra_kwargs: dict[str, Any],
+    ):
+        self._processor_cls = processor_cls
+        self._processor_extra_kwargs = processor_extra_kwargs
+
+    def run(self, **FrameworkProcessorRunArgs):
+        return self._processor_cls.run(**FrameworkProcessorRunArgs)
 
 class ProcessingStepFactory(StepFactoryInterface):
     def __init__(
@@ -57,7 +79,7 @@ class ProcessingStepFactory(StepFactoryInterface):
         processor_extra_kwargs: dict[str, Any],
         step_config_path: Path,  # Path to .env file containing configurations for this step.
         aws_connector: AWSConnectorInterface,
-        data_locations: DataLocations,
+        path_factory: PathFactory,
     ):
         self._processor_cls = processor_cls
         self._processor_extra_kwargs = processor_extra_kwargs

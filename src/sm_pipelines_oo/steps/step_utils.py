@@ -15,7 +15,8 @@ if TYPE_CHECKING:
 
 
 class PathFactory:
-    # todo: use general step config, once stable
+    # todo: use general step config, once stable.
+    # todo: Add interface (or rename to distinguish from actual factory patterns)
     def __init__(self, step_config: ProcessingConfig, shared_config: SharedConfig):
         self._step_config = step_config
         self._shared_config = shared_config

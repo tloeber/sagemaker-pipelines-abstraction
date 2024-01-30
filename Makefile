@@ -31,6 +31,7 @@ find-missing-typestubs:
 	@mypy --install-types
 
 mark-sagemaker-sdk-as-typed:
+	@# todo: don't hard-code python version
 	@python_dir=$$(poetry env info --path); \
 	touch $${python_dir}/lib/python3.10/site-packages/sagemaker/py.typed
 

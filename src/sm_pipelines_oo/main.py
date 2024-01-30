@@ -11,8 +11,8 @@ from sm_pipelines_oo.steps.pre_processing import ProcessingStepFactory
 
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
 from sm_pipelines_oo.shared_config_schema import BootstrapConfig, SharedConfig, Environment
-from sm_pipelines_oo.connector.interface import AWSConnectorInterface
-from sm_pipelines_oo.connector.implementation import create_aws_connector
+from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
+from sm_pipelines_oo.aws_connector.implementation import create_aws_connector
 from sm_pipelines_oo.pipeline_wrapper import PipelineWrapper
 
 # Whether to run through SM Pipeline, or to run steps directly.

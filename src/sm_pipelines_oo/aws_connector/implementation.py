@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 
 from sm_pipelines_oo.shared_config_schema import SharedConfig, Environment
-from sm_pipelines_oo.connector.interface import AWSConnectorInterface
+from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
 
 
 class AWSConnector(AWSConnectorInterface):

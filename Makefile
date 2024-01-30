@@ -1,11 +1,11 @@
 SHELL := /bin/bash
 
-setup:
+env:
 	@# Install Poetry into base environment, if not already present
 	(python3 -m poetry --version > /dev/null) || pip3 install poetry
 
 	@# Note that Poetry creates *editable* install for root project by default
-	python3 -m poetry install --all-extras
+	python3 -m poetry install --all-extras --without scala_kernel
 
 	@echo ""
 	@echo "Please manually set this environment as default in IDE for this project."
@@ -17,10 +17,12 @@ setup:
 	python3 -m poetry shell
 	make mark-sagemaker-sdk-as-typed
 
-	@# Create kernel spec (so we can use Scala in Jupyter notebooks)
+# So we can use Scala in Jupyter notebooks
+scala-kernel:
+	python3 -m poetry install --with scala_kernel
 	python -m spylon_kernel install --user
 
-update:
+env-update:
 	python3 -m poetry update
 
 find-missing-typestubs:

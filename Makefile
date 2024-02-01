@@ -35,6 +35,9 @@ mark-sagemaker-sdk-as-typed:
 	@python_dir=$$(poetry env info --path); \
 	touch $${python_dir}/lib/python3.10/site-packages/sagemaker/py.typed
 
+type-check:
+	mypy src/sm_pipelines_oo
+
 test:
 	poetry run pytest
 

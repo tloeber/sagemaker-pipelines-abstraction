@@ -19,8 +19,7 @@ from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
 
 class AWSConnector(AWSConnectorInterface):
     """
-    This is the main interface that we will use everywhere except for local runs and
-    testing.
+    This is the main connector that we will use everywhere except for local runs and testing.
 
     Args:
         run_as_pipeline: Whether to use PipelineSession or normal Sagemaker session. Significance: This
@@ -42,6 +41,14 @@ class AWSConnector(AWSConnectorInterface):
         return boto3.Session(region_name=self.shared_config.region)
 
     @cached_property
+    def _sm_runtime_client(self) -> SageMakerRuntimeClient:
+        return self._boto_session.client("sagemaker-runtime")
+
+    @cached_property
+    def sm_client(self) -> SageMakerClient:
+        return self._boto_session.client("sagemaker")
+
+    @cached_property
     def sm_session(self) -> PipelineSession | Session:
         if self.run_as_pipeline:
             return PipelineSession(
@@ -54,17 +61,9 @@ class AWSConnector(AWSConnectorInterface):
             return Session(
                 boto_session=self._boto_session,
                 sagemaker_client=self.sm_client,
-                sagemaker_runtime_client=self.sm_runtime_client,
+                sagemaker_runtime_client=self._sm_runtime_client,
                 default_bucket=self.shared_config.project_bucket_name,
             )
-
-    @cached_property
-    def sm_client(self) -> SageMakerClient:
-        return self._boto_session.client("sagemaker")
-
-    @cached_property
-    def sm_runtime_client(self) -> SageMakerRuntimeClient:
-        return self._boto_session.client("sagemaker-runtime")
 
     @cached_property
     def aws_account_id(self) -> str:
@@ -95,19 +94,16 @@ class AWSConnector(AWSConnectorInterface):
 
 class LocalAWSConnector(AWSConnectorInterface):
     @cached_property
-    def sm_session(self) -> Session:
-        return LocalPipelineSession()
-
-    @cached_property
     def sm_client(self):
         raise NotImplementedError
 
     @cached_property
-    def sm_runtime_client(self):
-        raise NotImplementedError
+    def sm_session(self) -> Session:
+        return LocalPipelineSession()
 
     @cached_property
     def role_arn(self) -> str:
+        # todo: Check if you have to be authenticated to run local - if so, implement this.
         raise NotImplementedError  # type: ignore
 
     @cached_property

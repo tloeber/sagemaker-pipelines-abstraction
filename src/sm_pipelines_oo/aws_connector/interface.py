@@ -17,11 +17,6 @@ class AWSConnectorInterface(ABC):
 
     @property
     @abstractmethod
-    def sm_runtime_client(self):
-        ...
-
-    @property
-    @abstractmethod
     def role_arn(self) -> str:
         ...
 

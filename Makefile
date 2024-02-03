@@ -36,7 +36,7 @@ mark-sagemaker-sdk-as-typed:
 	touch $${python_dir}/lib/python3.10/site-packages/sagemaker/py.typed
 
 type-check:
-	mypy src/sm_pipelines_oo
+	mypy src/sm_pipelines_oo --exclude '_tmp/'
 
 test:
 	poetry run pytest

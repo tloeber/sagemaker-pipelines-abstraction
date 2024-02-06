@@ -71,7 +71,6 @@ class AWSConnector(AWSConnectorInterface):
         sts_client: STSClient = boto3.client("sts")
         return sts_client.get_caller_identity()["Account"]
 
-
     @cached_property
     def role_arn(self) -> str:
         """

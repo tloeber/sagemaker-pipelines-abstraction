@@ -112,6 +112,7 @@ class LocalAWSConnector(AWSConnectorInterface):
 
 # Factory_method
 # ==============
+# todo: use class + staticmethod instead of function
 def create_aws_connector(
     run_as_pipeline: bool,
     environment: Environment,

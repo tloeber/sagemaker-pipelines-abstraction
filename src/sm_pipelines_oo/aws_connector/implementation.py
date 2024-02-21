@@ -20,21 +20,14 @@ from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
 class AWSConnector(AWSConnectorInterface):
     """
     This is the main connector that we will use everywhere except for local runs and testing.
-
-    Args:
-        run_as_pipeline: Whether to use PipelineSession or normal Sagemaker session. Significance: This
-            determines whether processor.run() returns `None` or pipeline step args. See
-            https://github.com/aws/sagemaker-python-sdk/blob/8462f1a1975da59304da4441aea956a43deec380/src/sagemaker/processing.py#L1763
     """
     def __init__(
         self,
         environment: Environment,
         shared_config: SharedConfig,
-        run_as_pipeline: bool,
     ) -> None:
         self.environment = environment
         self.shared_config = shared_config
-        self.run_as_pipeline = run_as_pipeline
 
     @cached_property
     def _boto_session(self) -> boto3.Session:
@@ -49,21 +42,29 @@ class AWSConnector(AWSConnectorInterface):
         return self._boto_session.client("sagemaker")
 
     @cached_property
-    def sm_session(self) -> PipelineSession | Session:
-        if self.run_as_pipeline:
-            return PipelineSession(
-                boto_session=self._boto_session,
-                sagemaker_client=self.sm_client,
-                default_bucket=self.shared_config.project_bucket_name,
-            )
-        # For running individual step directly (i.e. outside of pipeline)
-        else:
-            return Session(
-                boto_session=self._boto_session,
-                sagemaker_client=self.sm_client,
-                sagemaker_runtime_client=self._sm_runtime_client,
-                default_bucket=self.shared_config.project_bucket_name,
-            )
+    def sm_session(self) -> Session:
+        """
+        Use for running individual step directly (i.e. outside of pipeline. Implies that a step actor's (e.g., processor's) .run() method will return `None` and actually run the step. See
+            https://github.com/aws/sagemaker-python-sdk/blob/8462f1a1975da59304da4441aea956a43deec380/src/sagemaker/processing.py#L1763
+        """
+        return Session(
+            boto_session=self._boto_session,
+            sagemaker_client=self.sm_client,
+            sagemaker_runtime_client=self._sm_runtime_client,
+            default_bucket=self.shared_config.project_bucket_name,
+        )
+
+    @cached_property
+    def pipeline_session(self) -> PipelineSession:
+        """
+        For running pipeline. Implies that a step actor's (e.g., processor's) .run() method will return  pipeline step args rather than running the step and returning `None`. See
+            https://github.com/aws/sagemaker-python-sdk/blob/8462f1a1975da59304da4441aea956a43deec380/src/sagemaker/processing.py#L1763
+        """
+        return PipelineSession(
+            boto_session=self._boto_session,
+            sagemaker_client=self.sm_client,
+            default_bucket=self.shared_config.project_bucket_name,
+        )
 
     @cached_property
     def aws_account_id(self) -> str:
@@ -114,29 +115,16 @@ class LocalAWSConnector(AWSConnectorInterface):
 # ==============
 # todo: use class + staticmethod instead of function
 def create_aws_connector(
-    run_as_pipeline: bool,
     environment: Environment,
     shared_config: SharedConfig
 ) -> AWSConnectorInterface:
-    """
-    Args:
-    run_as_pipeline: Whether to use PipelineSession or normal Sagemaker session. Significance: This
-        determines whether processor.run() returns `None` or pipeline step args. See
-        https://github.com/aws/sagemaker-python-sdk/blob/8462f1a1975da59304da4441aea956a43deec380/src/sagemaker/processing.py#L1763
-
-        Note: At this point, local runs only support using pipeline.
-    """
+    """Note: At this point, local runs only support using pipeline."""
 
     if environment == 'local':
-        if run_as_pipeline:
-            return LocalAWSConnector()
-        else:
-            raise NotImplementedError
+        return LocalAWSConnector()
 
-    # If running on AWS
     else:
         return AWSConnector(
             environment=environment,
             shared_config=shared_config,
-            run_as_pipeline=run_as_pipeline
         )

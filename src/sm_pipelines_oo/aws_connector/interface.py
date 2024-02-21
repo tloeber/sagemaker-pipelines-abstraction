@@ -7,7 +7,12 @@ from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSe
 class AWSConnectorInterface(ABC):
     @property
     @abstractmethod
-    def sm_session(self) -> PipelineSession | Session | LocalPipelineSession:
+    def sm_session(self) -> Session:
+        ...
+
+    @property
+    @abstractmethod
+    def pipeline_session(self) -> PipelineSession | LocalPipelineSession:
         ...
 
     @property

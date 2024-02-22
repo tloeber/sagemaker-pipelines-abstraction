@@ -33,9 +33,10 @@ class AWSConnector(AWSConnectorInterface):
     def _boto_session(self) -> boto3.Session:
         return boto3.Session(region_name=self.shared_config.region)
 
-    @cached_property
-    def _sm_runtime_client(self) -> SageMakerRuntimeClient:
-        return self._boto_session.client("sagemaker-runtime")
+    # @cached_property
+    # def _sm_runtime_client(self) -> SageMakerRuntimeClient:
+    #     """For invoking endpoints."""
+    #     return self._boto_session.client("sagemaker-runtime")
 
     @cached_property
     def sm_client(self) -> SageMakerClient:
@@ -49,9 +50,6 @@ class AWSConnector(AWSConnectorInterface):
         """
         return Session(
             boto_session=self._boto_session,
-            sagemaker_client=self.sm_client,
-            sagemaker_runtime_client=self._sm_runtime_client,
-            default_bucket=self.shared_config.project_bucket_name,
         )
 
     @cached_property
@@ -63,7 +61,7 @@ class AWSConnector(AWSConnectorInterface):
         return PipelineSession(
             boto_session=self._boto_session,
             sagemaker_client=self.sm_client,
-            default_bucket=self.shared_config.project_bucket_name,
+            # default_bucket=self.shared_config.project_bucket_name,
         )
 
     @cached_property

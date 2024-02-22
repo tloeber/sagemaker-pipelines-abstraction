@@ -40,5 +40,5 @@ class SharedConfig(BaseSettings):
     project_version: str  # Versions data (and probably more in the future)
     region: str
     # To do: consider which of these fields should be made required.
-    role_name: str | None = None
     project_bucket_name: str
+    role_name: str | None = None

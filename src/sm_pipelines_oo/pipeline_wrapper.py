@@ -1,56 +1,59 @@
-from functools import cached_property
-from typing import Literal, Callable, TypeAlias
-from pathlib import Path
-from datetime import datetime
-
 from loguru import logger
 from sagemaker.workflow.pipeline import Pipeline
-from sagemaker.workflow.steps import Step
+from sagemaker.workflow.steps import ConfigurableRetryStep
 
 from sm_pipelines_oo.shared_config_schema import SharedConfig, Environment
-from sm_pipelines_oo.steps.interfaces import StepFactoryInterface
+from sm_pipelines_oo.steps.step_factory_facade import StepFactoryFacade
 from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
+from sm_pipelines_oo.aws_connector.implementation import create_aws_connector
+from sm_pipelines_oo.config_loader.abstraction import AbstractConfigLoader
 
-
-class PipelineWrapper:
+class PipelineFacade:
     def __init__(
         self,
-        step_factories: list[StepFactoryInterface],
-        environment: Environment,
-        shared_config: SharedConfig,
-        aws_connector: AWSConnectorInterface,
-    ) -> None:
-        self.environment = environment
-        self.shared_config = shared_config
-        self._aws_connector = aws_connector
+        env: Environment,
+        config_loader: AbstractConfigLoader | None = None,
+    ):
+        self._env = env
+        # Allows providing a different config loader, especially for testing
+        self._user_provided_config_loader = config_loader
 
-        self.steps: list[Step] = []
-        self._create_steps(step_factories, shared_config)
-
-    def _create_steps(self, step_factories: list[StepFactoryInterface], shared_config: SharedConfig) -> None:
-        for factory in step_factories:
-            step: Step = factory.create_step(
-                shared_config=shared_config,
-            )
-            self.steps.append(step)
-
-    @cached_property
-    def _pipeline(self) -> Pipeline:
-        pipeline_name = f'{self.shared_config.project_name}-{datetime.now():%Y-%m-%d-%H-%M-%S}'
-        pipeline = Pipeline(
-            name=pipeline_name,
-            steps=self.steps,
-            sagemaker_session=self._aws_connector.sm_session,
+        # Derived attributes
+        # ------------------
+        self._shared_config = SharedConfig(
+            **self._config_loader.shared_config_as_dict
         )
-        pipeline.create(role_arn=self._aws_connector.role_arn)
-        return pipeline
+        self.aws_connector: AWSConnectorInterface = create_aws_connector(
+            shared_config=self._shared_config,
+            environment=env,
+        )
+        # todo: how can we depend on an abstraction instead?
+        self.step_factory_facade = StepFactoryFacade(
+            step_config_dicts=self._config_loader.step_configs_as_dicts, # todo: pass in method call again?
+            role_arn=self.aws_connector.role_arn,
+            pipeline_session=self.aws_connector.pipeline_session,
+        )
 
-
-    # Public methods
-    # ==============
+    @property
+    def _config_loader(self) -> AbstractConfigLoader:
+        if self._user_provided_config_loader is not None:
+            return self._user_provided_config_loader
+        else:
+            # todo: Should be in check lists, so we don't depend on a concrete class?
+            return YamlConfigLoader(env=self._env)
 
     def run(self) -> None:
-        logger.info(f"Starting pipeline run for project {self.shared_config.project_name}")
-        execution = self._pipeline.start()
-        execution.wait()
-        execution.list_steps()
+        """This is the main way user will interact with this class."""
+        self._pipeline.upsert(
+            role_arn=self.aws_connector.role_arn,
+        )
+
+    @property
+    def _pipeline(self):
+        steps: list[ConfigurableRetryStep] = self.step_factory_facade.create_all_steps()
+        return Pipeline(
+            name=self._shared_config.project_name,
+            # parameters=[],
+            steps=steps,
+            sagemaker_session=self.aws_connector.pipeline_session,
+        )

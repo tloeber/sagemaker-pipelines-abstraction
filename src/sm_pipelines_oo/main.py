@@ -4,7 +4,7 @@ from pathlib import Path
 from sagemaker.sklearn.estimator import SKLearn
 from sagemaker.processing import FrameworkProcessor
 from sm_pipelines_oo.shared_config_schema import SharedConfig
-from sm_pipelines_oo.steps.pre_processing import ProcessingStepFactory
+from sm_pipelines_oo.steps.processing import ProcessingStepFactory
 # from sm_pipelines_oo.steps.model_training import train_step
 # from sm_pipelines_oo.steps.model_evaluation import eval_step
 # from sm_pipelines_oo.steps.model_registration import condition_step

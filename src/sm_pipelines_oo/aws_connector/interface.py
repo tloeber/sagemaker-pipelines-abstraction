@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from sagemaker.local.local_session import LocalSession
 from sagemaker.session import Session
 from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSession
 
@@ -7,7 +8,7 @@ from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSe
 class AWSConnectorInterface(ABC):
     @property
     @abstractmethod
-    def sm_session(self) -> Session:
+    def sm_session(self) -> Session | LocalSession:
         ...
 
     @property

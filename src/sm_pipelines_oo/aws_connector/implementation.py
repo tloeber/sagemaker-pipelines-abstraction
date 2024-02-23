@@ -5,6 +5,7 @@ from functools import cached_property
 
 from loguru import logger
 import boto3
+from sagemaker.local.local_session import LocalSession
 from sagemaker.session import Session, get_execution_role
 from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSession
 if TYPE_CHECKING:
@@ -96,7 +97,11 @@ class LocalAWSConnector(AWSConnectorInterface):
         raise NotImplementedError
 
     @cached_property
-    def sm_session(self) -> Session:
+    def sm_session(self) -> LocalSession:
+        return  LocalSession()
+
+    @cached_property
+    def pipeline_session(self) -> LocalPipelineSession:
         return LocalPipelineSession()
 
     @cached_property

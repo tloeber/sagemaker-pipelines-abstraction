@@ -1,19 +1,24 @@
+# For Python < 3.12, don't use typing.TypedDict: https://docs.pydantic.dev/2.6/errors/usage_errors/#typed-dict-version
+from typing_extensions import TypedDict
 from abc import ABC, abstractmethod
 import os
 from pathlib import Path
 from dataclasses import dataclass
 from functools import cached_property
 
-from typing import TypedDict, TypeAlias, Any, Generic, TypeVar, Literal
+from typing import TypeAlias, Any, Generic, TypeVar, Literal, ClassVar
 
 from loguru import logger
+
+from sagemaker.session import Session
+from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSession
 from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.processing import Processor, FrameworkProcessor
 
-# from sagemaker.sklearn.processing import SKLearnProcessor
 from sagemaker.workflow.steps import ProcessingStep
 from sagemaker.workflow.pipeline_context import _JobStepArguments
 from sagemaker.workflow.entities import PipelineVariable
+from sagemaker.sklearn.estimator import SKLearn
 from pydantic_settings import BaseSettings
 
 from sm_pipelines_oo.utils import load_pydantic_config_from_file
@@ -22,8 +27,35 @@ from sm_pipelines_oo.shared_config_schema import SharedConfig
 from sm_pipelines_oo.pipeline_wrapper import AWSConnectorInterface
 from sm_pipelines_oo.steps.interfaces import StepFactoryInterface
 
+from sm_pipelines_oo.shared_config_schema import SharedConfig
+
+class _FWProcessorInitConfig(TypedDict):
+    framework_version: str
+    estimator_cls_name: str
+    instance_count: int
+    instance_type: str
+
+
+class _FWProcessorRunConfig(TypedDict):
+    code: str
+    source_dir: str
+    # todo: allow athena datasetdefinition instead
+    input_files_s3paths: list[Path]  # todo: validate it's an s3 path
+    output_files_s3paths: list[Path]  # todo: validate it's an s3 path
+
+
+class FrameworkProcessingStepConfig(BaseSettings):
+    # todo:
+    step_name: str
+    step_factory_class: str
+    processor_init_args: _FWProcessorInitConfig
+    processor_run_args: _FWProcessorRunConfig
+    # For now, we will reload this for every step config to avoid dependency on pipeline wrapper.
+    shared_config: SharedConfig
+
 
 class FrameworkProcessingStepFactory(StepFactoryInterface):
+    _local_dir: ClassVar = Path('/opt/ml/processing')
     # Note: this is a public attribute, so user can add support for additional estimators
     estimator_name_to_cls_mapping: ClassVar[dict[str, Any]] = {  # todo:  find supertype
         'SKLearn': SKLearn,
@@ -60,10 +92,12 @@ class FrameworkProcessingStepFactory(StepFactoryInterface):
         run_args: dict[str, Any] = dict(self._config.processor_run_args)
 
         # Create ProcessingInputs from list of s3paths (strings)
-        _input_files_s3paths: list[str] = run_args.pop('input_files_s3paths')
+        _input_files_s3paths: list[Path] = run_args.pop('input_files_s3paths')
         _processing_inputs: list[ProcessingInput] = [
             ProcessingInput(
-                source=s3path,
+                input_name=str(s3path.stem), # filename without extension
+                source=str(s3path),
+                destination=str(self._local_dir / s3path.name),
                 # todo: Allow passing through extra arguments
             )
             for s3path in _input_files_s3paths
@@ -91,4 +125,3 @@ class FrameworkProcessingStepFactory(StepFactoryInterface):
             name=self._config.step_name,
             step_args=_step_args,
         )
-# To d

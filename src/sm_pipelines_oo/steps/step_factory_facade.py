@@ -6,7 +6,7 @@ from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSe
 from sagemaker.workflow.steps import ConfigurableRetryStep
 
 from sm_pipelines_oo.steps.interfaces import StepFactoryInterface, StepFactoryFacadeInterface
-from sm_pipelines_oo.steps.processing import FrameworkProcessingStepFactory
+from sm_pipelines_oo.steps.framework_processing_step import FrameworkProcessingStepFactory
 
 
 class StepFactoryFacade(StepFactoryFacadeInterface):

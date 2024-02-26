@@ -3290,6 +3290,21 @@ files = [
 ]
 
 [[package]]
+name = "s3path"
+version = "0.5.2"
+description = ""
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "s3path-0.5.2-py3-none-any.whl", hash = "sha256:363c97d4fdb3da21cfaf1f9757f0bd00ad3089bf234024b9b45fa572eb373419"},
+    {file = "s3path-0.5.2.tar.gz", hash = "sha256:29f3e20fa79d06b645cc839bf027c0a36172030ddd5c7b6cddca67babd4b02dc"},
+]
+
+[package.dependencies]
+boto3 = ">=1.16.35"
+smart-open = "*"
+
+[[package]]
 name = "s3transfer"
 version = "0.10.0"
 description = "An Amazon S3 Transfer Manager"
@@ -3491,6 +3506,31 @@ files = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
 ]
+
+[[package]]
+name = "smart-open"
+version = "7.0.1"
+description = "Utils for streaming large files (S3, HDFS, GCS, Azure Blob Storage, gzip, bz2...)"
+optional = false
+python-versions = ">=3.6,<4.0"
+files = [
+    {file = "smart_open-7.0.1-py3-none-any.whl", hash = "sha256:9507e38b43d1fd515c2085b9db2e41b592bb754b0e31395a085eb0d61d2410e5"},
+    {file = "smart_open-7.0.1.tar.gz", hash = "sha256:c03d00e49483d8e5375720d4d6c1402107f23584bf96505db0b4e17f92339e56"},
+]
+
+[package.dependencies]
+wrapt = "*"
+
+[package.extras]
+all = ["azure-common", "azure-core", "azure-storage-blob", "boto3", "google-cloud-storage (>=2.6.0)", "paramiko", "requests", "zstandard"]
+azure = ["azure-common", "azure-core", "azure-storage-blob"]
+gcs = ["google-cloud-storage (>=2.6.0)"]
+http = ["requests"]
+s3 = ["boto3"]
+ssh = ["paramiko"]
+test = ["azure-common", "azure-core", "azure-storage-blob", "boto3", "google-cloud-storage (>=2.6.0)", "moto[server]", "paramiko", "pytest", "pytest-benchmark", "pytest-rerunfailures", "requests", "responses", "zstandard"]
+webhdfs = ["requests"]
+zst = ["zstandard"]
 
 [[package]]
 name = "smdebug-rulesconfig"
@@ -3990,4 +4030,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <3.12"
-content-hash = "d23bf489f1430cc661158603ab45fc97a2c61b4414a8ed797de1eda9afccbf79"
+content-hash = "90f6644713d0da1e3b6c69fd9f2b01d8701803f4937e7c61d8e3cd788ebf6df4"

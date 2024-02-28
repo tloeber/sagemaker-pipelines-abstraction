@@ -10,8 +10,9 @@ shared configuration.)
 from functools import cached_property
 from typing import TypeAlias, Literal
 import os
+from s3path import S3Path
 
-from pydantic import field_validator
+from pydantic import computed_field, Field
 from pydantic_settings import BaseSettings
 import boto3
 import sagemaker
@@ -40,5 +41,12 @@ class SharedConfig(BaseSettings):
     project_version: str  # Versions data (and probably more in the future)
     region: str
     # To do: consider which of these fields should be made required.
-    project_bucket_name: str
+    project_bucket_name: str = Field(pattern=r'^[a-zA-Z0-9.\-_]{1,255}$')
     role_name: str | None = None
+
+    @computed_field
+    def project_bucket(self) -> S3Path:
+        return S3Path(
+            # Leading slash serves to mark it as an *absolute* path.
+            f'/{self.project_bucket_name}',
+        )

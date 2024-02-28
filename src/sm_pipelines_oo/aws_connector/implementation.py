@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from mypy_boto3_sagemaker.client import SageMakerClient
     from mypy_boto3_sagemaker_runtime.client import SageMakerRuntimeClient
     from mypy_boto3_sts.client import STSClient
-
+    from mypy_boto3_s3.client import S3Client
 
 from sm_pipelines_oo.shared_config_schema import SharedConfig, Environment
 from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
@@ -42,6 +42,10 @@ class AWSConnector(AWSConnectorInterface):
     @cached_property
     def sm_client(self) -> SageMakerClient:
         return self._boto_session.client("sagemaker")
+
+    @cached_property
+    def s3_client(self) -> S3Client:
+        return self._boto_session.client("s3")
 
     @cached_property
     def sm_session(self) -> Session:
@@ -94,6 +98,10 @@ class AWSConnector(AWSConnectorInterface):
 class LocalAWSConnector(AWSConnectorInterface):
     @cached_property
     def sm_client(self):
+        raise NotImplementedError
+
+    @cached_property
+    def s3_client(self) -> S3Client:
         raise NotImplementedError
 
     @cached_property

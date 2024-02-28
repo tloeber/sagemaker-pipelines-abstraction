@@ -37,8 +37,8 @@ from sm_pipelines_oo.shared_config_schema import SharedConfig
 
 # Initialization of FrameworkProcessor
 # ------------------------------------
-class FrameworkProcessorInitArgs(TypedDict):
-    """kwargs for instantiating FrameworkProcessor."""
+class InitArgs(TypedDict):
+    """kwargs for instantiating *Framework*Processor."""
     framework_version: str
     estimator_cls: type[SKLearn] # todo: extend to support more estimators (ideally find supertype)
     instance_count: int
@@ -47,7 +47,7 @@ class FrameworkProcessorInitArgs(TypedDict):
     sagemaker_session: Session
 
 
-class _FWProcessorInitConfig(TypedDict):
+class _InitConfig(TypedDict):
     framework_version: str
     estimator_cls_name: str
     instance_count: int
@@ -56,15 +56,15 @@ class _FWProcessorInitConfig(TypedDict):
 
 # Arguments for *running* FrameworkProcessor
 # ------------------------------------------
-class FrameworkProcessorRunArgs(TypedDict):
-    """kwargs for FrameworkProcessor.run()."""
+class RunArgs(TypedDict):
+    """Kwargs for *Framework*Processor.run()."""
     code: str
     source_dir: str
     inputs: list[ProcessingInput]
     outputs: list[ProcessingOutput]
 
 
-class _FWProcessorRunConfig(TypedDict):
+class _RunConfig(TypedDict):
     code: str
     source_dir: str
     # todo: allow athena datasetdefinition instead
@@ -75,12 +75,15 @@ class _FWProcessorRunConfig(TypedDict):
 # Combining configs into single config for the step
 # ==================================================
 
-class FrameworkProcessingStepConfig(BaseSettings):
+class StepConfig(BaseSettings):
+    """
+    Note that it would be more explicit to call this a *FrameworkProcessing*StepConfig. However, to avoid this tedious naming, we go with the shorter name – which is unambiguous within the module namespace anyway.
+    """
     # todo:
     step_name: str
     step_factory_class: str
-    processor_init_config: _FWProcessorInitConfig
-    processor_run_config: _FWProcessorRunConfig
+    processor_init_config: _InitConfig
+    processor_run_config: _RunConfig
     # For now, we will reload this for every step config to avoid dependency on pipeline wrapper.
     shared_config: SharedConfig
 
@@ -88,14 +91,14 @@ class FrameworkProcessingStepConfig(BaseSettings):
 # Impementation of StepFactory
 # ============================
 
-class FrameworkProcessingStepFactory(StepFactoryInterface):
+class StepFactory(StepFactoryInterface):
     _local_dir: ClassVar = Path('/opt/ml/processing')
     # Note: this is a public attribute, so user can add support for additional estimators
     estimator_name_to_cls_mapping: ClassVar[dict[str, Any]] = {  # todo:  find supertype
         'SKLearn': SKLearn,
     }
 
-    _config_model: ClassVar[type[FrameworkProcessingStepConfig]] = FrameworkProcessingStepConfig
+    _config_model: ClassVar[type[StepConfig]] = StepConfig
 
     def __init__(
         self,
@@ -106,7 +109,7 @@ class FrameworkProcessingStepFactory(StepFactoryInterface):
         pipeline_session: PipelineSession | LocalPipelineSession
     ):
         # Parse config, using the specific pydantic model that this factory has as a class variable.
-        self._config: FrameworkProcessingStepConfig = self._config_model(**step_config_dict)
+        self._config: StepConfig = self._config_model(**step_config_dict)
         self._role_arn = role_arn
         self._pipeline_session = pipeline_session
 
@@ -123,7 +126,7 @@ class FrameworkProcessingStepFactory(StepFactoryInterface):
             sagemaker_session=self._pipeline_session,
         )  # todo: check if typechecker catches wrong args. Otherwise, define typed dict for FWPInitArgs.
 
-    def _construct_run_args(self) -> FrameworkProcessorRunArgs:
+    def _construct_run_args(self) -> RunArgs:
         """
         Takes config and modifies it for creating run args.  At the moment, this only involves  constructing ProcessingInputs and ProcessingOutputs.
 
@@ -154,7 +157,7 @@ class FrameworkProcessingStepFactory(StepFactoryInterface):
             for s3path in _output_files_s3paths
         ]
 
-        return FrameworkProcessorRunArgs(
+        return RunArgs(
             # Newly constructed inputs and outputs:
             inputs=_processing_inputs,
             outputs=_processing_outputs,

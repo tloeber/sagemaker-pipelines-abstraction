@@ -6,7 +6,7 @@ from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSe
 from sagemaker.workflow.steps import ConfigurableRetryStep
 
 from sm_pipelines_oo.steps.interfaces import StepFactoryInterface, StepFactoryFacadeInterface
-from sm_pipelines_oo.steps.framework_processing_step import FrameworkProcessingStepFactory
+from sm_pipelines_oo.steps import framework_processing_step
 
 
 class StepFactoryFacade(StepFactoryFacadeInterface):
@@ -23,7 +23,7 @@ class StepFactoryFacade(StepFactoryFacadeInterface):
     """
 
     _default_stepfactory_lookup_table: ClassVar[dict[str, type[StepFactoryInterface]]] = {
-        'FrameworkProcessor': FrameworkProcessingStepFactory,
+        'FrameworkProcessor': framework_processing_step.StepFactory,
     }
 
     def __init__(

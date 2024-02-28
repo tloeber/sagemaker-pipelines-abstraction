@@ -1,0 +1,20 @@
+[tool.poetry]
+name = "sm-pipelines-oo-examples"
+version = "0.0.1"
+description = "Sagemaker Pipelines OO Examples"
+authors = ["Thomas Loeber <thomas.loeber73@gmail.com>"]
+license = "MIT"
+packages = [{ include = "smp_oo_examples", from = "src" }]
+
+[[tool.poetry.source]]
+name = "PyPI"
+priority = "primary"
+
+[tool.poetry.dependencies]
+# directory
+python = ">=3.10, <3.12"
+sm-pipelines-oo = { path = "..", develop = true }
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

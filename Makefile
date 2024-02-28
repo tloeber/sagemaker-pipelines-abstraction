@@ -5,7 +5,8 @@ env:
 	(python3 -m poetry --version > /dev/null) || pip3 install poetry
 
 	@# Note that Poetry creates *editable* install for root project by default
-	python3 -m poetry install --all-extras --without scala_kernel
+	@# (unless package-mode is set to `false`)
+	 -m poetry install --all-extras --without scala_kernel
 
 	@echo ""
 	@echo "Please manually set this environment as default in IDE for this project."

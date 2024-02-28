@@ -1,0 +1,26 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {
+		"python.defaultInterpreterPath": "~/.cache/pypoetry/virtualenvs/sm-pipelines-oo-examples-yainlQgE-py3.10/bin/python",
+		"terminal.integrated.cwd": "examples/src/smp_oo_examples",
+		},
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Python: Current File",
+				"type": "python",
+				"request": "launch",
+				"program": "${file}",
+				"console": "integratedTerminal",
+				"justMyCode": true,
+				"cwd":"${workspaceRoot}",
+			}
+		],
+	},
+}

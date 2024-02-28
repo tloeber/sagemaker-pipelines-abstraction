@@ -28,6 +28,7 @@ sagemaker = "^2.173.0"
 pandera = {extras = ["mypy", "io"], version = "^0.17.2"}
 awswrangler = "^3.4.2"
 s3path = "^0.5.2"
+pyyaml = "^6.0.1"
 
 [tool.poetry.group.dev.dependencies]
 mypy = "^1.4.0"
@@ -43,7 +44,6 @@ types-openpyxl = "^3.1.0.32"
 types-requests = "^2.31.0.10"
 pyarrow-stubs = "^10.0.1.7"
 types-pyyaml = "^6.0.12.12"
-pyyaml = "^6.0.1"
 ipytest = "^0.14.0"
 
 [tool.poetry.group.scala_kernel]

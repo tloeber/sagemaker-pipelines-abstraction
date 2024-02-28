@@ -24,23 +24,4 @@ def load_pydantic_config_from_file(
                 f"Failed to load {config_cls.__name__} because the following file does not exist:"
                 f"{absolute_config_path}.\n\nCurrent directory: {Path.cwd()}\n\nError: {e}"
             )
-
         raise e
-
-
-def run_aws_cli_cmd(cmd: list[str]):
-    """
-    Run an AWS CLI command and intercepts error message, if any.
-
-    Requires AWS CLI to be installed and configured.
-    """
-    result = subprocess.run(
-        cmd,
-        capture_output=True,
-        check=False,
-    )
-    if result.returncode != 0:
-        logger.error(result.stderr)
-        raise Exception(
-            result.stderr.decode('utf-8')
-        )

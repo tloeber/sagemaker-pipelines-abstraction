@@ -13,8 +13,6 @@ from sm_pipelines_oo.aws_connector.implementation import create_aws_connector
 from sm_pipelines_oo.config_loader.abstraction import AbstractConfigLoader
 from sm_pipelines_oo.config_loader.implementations import YamlConfigLoader
 
-# Dev dependencies
-from sm_pipelines_oo.utils import run_aws_cli_cmd
 
 class PipelineFacade:
     def __init__(
@@ -41,7 +39,7 @@ class PipelineFacade:
             shared_config=self._shared_config,
             environment=env,
         )
-        # todo: Any reason to make facade an attribute instead? (Would it make class diagram more clear, or can we still say that pipeline façade "has a" step factory façade,  even if you don't save it past initialization)?
+        # todo: Any reason to make step-factory-facade an attribute instead? (Would it make class diagram more clear, or can we still say that pipeline façade "has a" step factory façade,  even if you don't save it past initialization)?
         _step_factory_facade = StepFactoryFacade(
             step_config_dicts=self._config_loader.step_configs_as_dicts, # todo: pass in method call again?
             role_arn=self.aws_connector.role_arn,
@@ -79,7 +77,6 @@ class PipelineFacade:
         logger.info(f'Uploaded pipeline definition to {s3_path.as_uri()}')
         return s3_path
 
-
     @property
     def _config_loader(self) -> AbstractConfigLoader:
         if self._user_provided_config_loader is not None:
@@ -92,6 +89,54 @@ class PipelineFacade:
 class DevPipelineFacade(PipelineFacade):
     """Adds additional methods to pipeline façade that are only needed for development."""
 
+    def upsert_pipeline(self, s3_location: S3Path) -> None:
+        try:
+            result = subprocess.run(
+                [
+                    'aws', 'sagemaker', 'create-pipeline',
+                    '--pipeline-name', self.pipeline_name,
+                    '--pipeline-definition-s3-location',
+                        f'Bucket={s3_location.bucket},ObjectKey={s3_location.key}',
+                    '--role-arn', self.aws_connector.role_arn,
+                ],
+                check=True, # Fail on error
+            )
+        except subprocess.CalledProcessError:
+            logger.info('Creating pipeline failed. Trying to update it instead.')
+            result = subprocess.run(
+                [
+                    'aws', 'sagemaker', 'update-pipeline',
+                    '--pipeline-name', self.pipeline_name,
+                    '--pipeline-definition-s3-location',
+                        f'Bucket={s3_location.bucket},ObjectKey={s3_location.key}',
+                ],
+                check=False,  # Don't fail on error, so we can manually examine error msg
+                capture_output=True,
+            )
+            # Capture error and raise it, if it still didn't work
+            if result.returncode != 0:
+                logger.error(result.stderr)
+                raise Exception(
+                    result.stderr.decode('utf-8')
+                )
+            else:
+                logger.info('Pipeline updated successfully.')
+
+    def _start_pipeline(self) -> None:
+        result = subprocess.run(
+            [
+                'aws', 'sagemaker', 'start-pipeline-execution',
+                '--pipeline-name', self.pipeline_name,
+            ],
+            check=False,  # Don't fail on error, so we can manually examine error msg
+            capture_output=True,
+        )
+        if result.returncode != 0:
+            logger.error(
+                result.stderr.decode('utf-8'),
+            )
+            raise Exception
+
     def create_and_start_pipeline_from_definition(self) -> None:
         """
         After exporting JSON definition to S3,  use AWS CLI to create and start pipeline.
@@ -99,48 +144,17 @@ class DevPipelineFacade(PipelineFacade):
         Requires AWS CLI to be installed and configured.
         """
 
-        def _create_pipeline(s3_location: S3Path) -> None:
-            run_aws_cli_cmd(
-                cmd=[
-                    'aws', 'sagemaker', 'create-pipeline',
-                    '--pipeline-name', self.pipeline_name,
-                    '--pipeline-definition-s3-location',
-                        f'Bucket={s3_location.bucket},ObjectKey={s3_location.key}',
-                    '--role-arn', self.aws_connector.role_arn,
-                ]
-            )
-
-        def _update_pipeline(s3_location: S3Path) -> None:
-            run_aws_cli_cmd(
-                cmd=[
-                    'aws', 'sagemaker', 'update-pipeline',
-                    '--pipeline-name', self.pipeline_name,
-                    '--pipeline-definition-s3-location',
-                        f'Bucket={s3_location.bucket},ObjectKey={s3_location.key}',
-                    '--role-arn', self.aws_connector.role_arn,
-                ]
-            )
-
-        def _start_pipeline() -> None:
-            run_aws_cli_cmd(
-                cmd=[
-                    'aws', 'sagemaker', 'start-pipeline-execution',
-                    '--pipeline-name', self.pipeline_name,
-                ]
-            )
-
-        # Write definition to S3
         s3_location: S3Path = self.export_pipeline_definition_to_s3()
+        self.upsert_pipeline(s3_location)
+        self._start_pipeline()
 
-        try:
-            _create_pipeline(s3_location)
-        except Exception as e:
-            _update_pipeline(s3_location)
 
-        _start_pipeline()
-
-    def create_and_run(self) -> None:
-        """Deprecated. Use `create_and_run_from_definition()` instead."""
+    # Alternative way of running pipeline
+    # -----------------------------------
+    def _create_and_run_pipeline_directly(self) -> None:
+        """
+        Use `create_and_run_from_definition()` instead, except for troubleshooting.
+        """
         self._pipeline.upsert(
             role_arn=self.aws_connector.role_arn,
         )

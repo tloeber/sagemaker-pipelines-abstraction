@@ -1,6 +1,8 @@
+import subprocess
 from pathlib import Path
 from pydantic import ValidationError
 from pydantic_settings import BaseSettings
+
 from loguru import logger
 
 # todo (first): Make return type more specific, because we know it will be a specific subtype of
@@ -24,3 +26,21 @@ def load_pydantic_config_from_file(
             )
 
         raise e
+
+
+def run_aws_cli_cmd(cmd: list[str]):
+    """
+    Run an AWS CLI command and intercepts error message, if any.
+
+    Requires AWS CLI to be installed and configured.
+    """
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        check=False,
+    )
+    if result.returncode != 0:
+        logger.error(result.stderr)
+        raise Exception(
+            result.stderr.decode('utf-8')
+        )

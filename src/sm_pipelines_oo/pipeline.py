@@ -82,7 +82,7 @@ class PipelineFacade:
         if self._user_provided_config_loader is not None:
             return self._user_provided_config_loader
         else:
-            # todo: Should be in check lists, so we don't depend on a concrete class?
+            # todo: Should we inject this, so we don't depend on a concrete class?
             return YamlConfigLoader(env=self._env)
 
 

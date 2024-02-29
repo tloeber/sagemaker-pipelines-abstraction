@@ -38,7 +38,7 @@ from sm_pipelines_oo.shared_config_schema import SharedConfig
 # Initialization of FrameworkProcessor
 # ------------------------------------
 class InitArgs(TypedDict):
-    """kwargs for instantiating *Framework*Processor."""
+    """Kwargs for instantiating *Framework*Processor."""
     framework_version: str
     estimator_cls: type[SKLearn] # todo: extend to support more estimators (ideally find supertype)
     instance_count: int
@@ -47,7 +47,8 @@ class InitArgs(TypedDict):
     sagemaker_session: Session
 
 
-class _InitConfig(TypedDict):
+class _InitConfig(BaseSettings):
+    """Config for creating Init*Args*"""
     framework_version: str
     estimator_cls_name: str
     instance_count: int
@@ -64,12 +65,21 @@ class RunArgs(TypedDict):
     outputs: list[ProcessingOutput]
 
 
-class _RunConfig(TypedDict):
+class _RunConfig(BaseSettings):
+    """Serves as input for constructing kwargs for *Framework*Processor.run()."""
     code: str
     source_dir: str
     # todo: allow athena datasetdefinition instead
-    input_files_s3paths: list[S3Path]  # todo: validate it's an s3 path
-    output_files_s3paths: list[S3Path]  # todo: validate it's an s3 path
+    input_files_s3paths: list[str]  # todo: validate it's an s3 path
+    output_files_s3paths: list[str]  # todo: validate it's an s3 path
+
+    def get_input_files_s3paths(self) -> list[S3Path]:
+        """Converts list of strings to list of S3Path objects."""
+        return [S3Path.from_uri(s3path) for s3path in self.input_files_s3paths]
+
+    def get_output_files_s3paths(self) -> list[S3Path]:
+        """Converts list of strings to list of S3Path objects."""
+        return [S3Path.from_uri(s3path) for s3path in self.output_files_s3paths]
 
 
 # Combining configs into single config for the step
@@ -93,7 +103,7 @@ class StepConfig(BaseSettings):
 
 class StepFactory(StepFactoryInterface):
     _local_dir: ClassVar = Path('/opt/ml/processing')
-    # Note: this is a public attribute, so user can add support for additional estimators
+    # Note: this is a public attribute, so user can add support for additional estimators by overwritting it.
     estimator_name_to_cls_mapping: ClassVar[dict[str, Any]] = {  # todo:  find supertype
         'SKLearn': SKLearn,
     }
@@ -115,8 +125,8 @@ class StepFactory(StepFactoryInterface):
 
     @property
     def processor(self) -> FrameworkProcessor:
-        # Start with init args from config, but convert TypedDict to dict so we can modify keys.
-        init_args: dict[str, Any] = dict(self._config.processor_init_config)
+        # Start with init args from config (have to convert to dict first so we can modify keys).
+        init_args: dict[str, Any] = self._config.processor_init_config.model_dump()
         # Replace the string of estimator_cls_name with the actual estimator_cls
         estimator_cls_name = init_args.pop('estimator_cls_name')
         init_args['estimator_cls'] = self.estimator_name_to_cls_mapping[estimator_cls_name]
@@ -124,8 +134,9 @@ class StepFactory(StepFactoryInterface):
             **init_args,
             role=self._role_arn,
             sagemaker_session=self._pipeline_session,
-        )  # todo: check if typechecker catches wrong args. Otherwise, define typed dict for FWPInitArgs.
+        )  # todo: Ensure that typechecker catches wrong args.
 
+    # todo: Make constructing (Processing)Input/Output reusable for other step implementations, and extend to other types of inputs (in particular, Athena dataset definition, as well as potentially S3  directly).  probably need to create a separate class and use composition.
     def _construct_run_args(self) -> RunArgs:
         """
         Takes config and modifies it for creating run args.  At the moment, this only involves  constructing ProcessingInputs and ProcessingOutputs.
@@ -133,20 +144,21 @@ class StepFactory(StepFactoryInterface):
         Note: Unfortunately we can't just pass through everything else from config except what we don't need - which would be more flexible. Unfortunately, this would require *deleting* items from the typed dict (input/output_files_s3_path), which is not possible unless we convert it to a normal (untyped) dictionary. But doing so is not a desirable  approach either, because it would cause the type checker to lose knowledge about which types *are* still in there and are thus passed through (so type checker wouldn't recognize these and would think they are missing).
         """
 
-        # Create ProcessingInputs from list of s3paths (strings)
-        _input_files_s3paths: list[S3Path] = self._config.processor_run_config['input_files_s3paths']
-        _processing_inputs: list[ProcessingInput] = [
+        # Create ProcessingInputs from list of s3paths
+        _input_files_s3: list[S3Path]  = self._config.processor_run_config.get_input_files_s3paths()
+        processing_inputs: list[ProcessingInput] = [
             ProcessingInput(
                 input_name=str(s3path.stem), # filename without extension
                 source=s3path.as_uri(),
                 destination=str(self._local_dir / s3path.name), # Same filename, but in local dir
                 # todo: Allow passing through extra arguments
             )
-            for s3path in _input_files_s3paths
+            for s3path in _input_files_s3
         ]
 
         # Do the same for ProcessingOutputs
-        _output_files_s3paths: list[S3Path] = self._config.processor_run_config['output_files_s3paths']
+        _output_files_s3paths: list[S3Path] = self._config.processor_run_config \
+            .get_output_files_s3paths()
         _processing_outputs: list[ProcessingOutput] = [
             ProcessingOutput(
                 output_name=str(s3path.stem), # filename without extension
@@ -159,11 +171,11 @@ class StepFactory(StepFactoryInterface):
 
         return RunArgs(
             # Newly constructed inputs and outputs:
-            inputs=_processing_inputs,
+            inputs=processing_inputs,
             outputs=_processing_outputs,
             # The rest is passed through literally from configs.
-            code=self._config.processor_run_config['code'],
-            source_dir=self._config.processor_run_config['source_dir'],
+            code=self._config.processor_run_config.code,
+            source_dir=self._config.processor_run_config.source_dir,
         )
 
     def create_step(self) -> ProcessingStep:

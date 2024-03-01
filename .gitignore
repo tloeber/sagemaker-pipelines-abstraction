@@ -130,9 +130,9 @@ dmypy.json
 
 # Terraform
 # =========
-**/terraform/.terraform**
+**/terraform/.terraform*
 # Since statefiles may contain secrets
-**.tfstate
+**.tfstate*
 
 # Scala
 .metals/

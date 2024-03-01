@@ -66,7 +66,7 @@ class PipelineFacade:
         # Upload to S3
         s3_path: S3Path = (
             self._shared_config.project_bucket /
-            f'pipeline_definitions/{self.pipeline_name}-definition.json'
+            f'pipeline_definitions/{self.pipeline_name}.json'
         )
         self.aws_connector.s3_client \
             .upload_file(

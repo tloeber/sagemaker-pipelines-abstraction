@@ -1,5 +1,5 @@
 resource "aws_iam_role" "sagemaker_pipelines_role" {
-  name = "sagemaker_pipelines_role"
+  name = "sagemaker_pipelines_OO_examples"
 
   assume_role_policy = <<EOF
 {

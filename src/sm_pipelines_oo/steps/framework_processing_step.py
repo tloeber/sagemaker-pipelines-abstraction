@@ -11,6 +11,7 @@ from loguru import logger
 from s3path import S3Path
 
 from sagemaker.session import Session
+from sagemaker.local.local_session import LocalSession
 from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSession
 from sagemaker.processing import ProcessingInput, ProcessingOutput
 from sagemaker.processing import Processor, FrameworkProcessor
@@ -116,24 +117,27 @@ class StepFactory(StepFactoryInterface):
         #  from? (Parsing is handled by pydantic anyway.)
         step_config_dict: dict[str, Any],
         role_arn: str,
-        pipeline_session: PipelineSession | LocalPipelineSession
+        pipeline_session: PipelineSession | LocalPipelineSession,
+        # Optionally, provide non-pipeline session to run processor directly
+        sm_session: Session | LocalSession | None = None,
     ):
         # Parse config, using the specific pydantic model that this factory has as a class variable.
         self._config: StepConfig = self._config_model(**step_config_dict)
         self._role_arn = role_arn
-        self._pipeline_session = pipeline_session
+        self._pipeline_session: PipelineSession | LocalPipelineSession = pipeline_session
+        self._sm_session = sm_session
 
-    @property
-    def processor(self) -> FrameworkProcessor:
+    def get_processor(self, as_pipeline: bool) -> FrameworkProcessor:
         # Start with init args from config (have to convert to dict first so we can modify keys).
         init_args: dict[str, Any] = self._config.processor_init_config.model_dump()
         # Replace the string of estimator_cls_name with the actual estimator_cls
         estimator_cls_name = init_args.pop('estimator_cls_name')
         init_args['estimator_cls'] = self.estimator_name_to_cls_mapping[estimator_cls_name]
+        session = self._pipeline_session if as_pipeline else self._sm_session
         return FrameworkProcessor(
             **init_args,
             role=self._role_arn,
-            sagemaker_session=self._pipeline_session,
+            sagemaker_session=session,
         )  # todo: Ensure that typechecker catches wrong args.
 
     # todo: Make constructing (Processing)Input/Output reusable for other step implementations, and extend to other types of inputs (in particular, Athena dataset definition, as well as potentially S3  directly).  probably need to create a separate class and use composition.
@@ -179,10 +183,18 @@ class StepFactory(StepFactoryInterface):
         )
 
     def create_step(self) -> ProcessingStep:
-        _step_args = self.processor.run(
+        pipeline_processor = self.get_processor(as_pipeline=True)
+        _step_args = pipeline_processor.run(
             **self._construct_run_args()
         )
         return ProcessingStep(
             name=self._config.step_name,
-            step_args=_step_args, # mypy doesn't complain, just pylance. So don't silence.
+            step_args=_step_args, # type: ignore
+        )
+
+    def run_processor(self) -> None:
+        """Runs the processor directly, bypassing the pipeline."""
+        direct_processor = self.get_processor(as_pipeline=False)
+        direct_processor.run(
+            **self._construct_run_args()
         )

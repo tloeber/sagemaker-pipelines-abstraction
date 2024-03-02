@@ -8,6 +8,7 @@ from sagemaker.workflow.steps import ConfigurableRetryStep, ProcessingStep
 from sm_pipelines_oo.shared_config_schema import SharedConfig
 
 from sagemaker.session import Session, get_execution_role
+from sagemaker.local.local_session import LocalSession
 from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSession
 
 
@@ -31,7 +32,8 @@ class StepFactoryInterface(ABC):
         self,
         step_config_dict: dict[str, Any],
         role_arn: str,
-        pipeline_session: PipelineSession | LocalPipelineSession, # todo: consider allowing normal session - probably should be separate argument though?
+        pipeline_session: PipelineSession | LocalPipelineSession,
+        sm_session: Session | LocalSession,
     ):
         ...
 

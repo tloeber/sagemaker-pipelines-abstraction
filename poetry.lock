@@ -3803,6 +3803,78 @@ files = [
 ]
 
 [[package]]
+name = "types-beautifulsoup4"
+version = "4.12.0.20240229"
+description = "Typing stubs for beautifulsoup4"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-beautifulsoup4-4.12.0.20240229.tar.gz", hash = "sha256:e37e4cfa11b03b01775732e56d2c010cb24ee107786277bae6bc0fa3e305b686"},
+    {file = "types_beautifulsoup4-4.12.0.20240229-py3-none-any.whl", hash = "sha256:000cdddb8aee4effb45a04be95654de8629fb8594a4f2f1231cff81108977324"},
+]
+
+[package.dependencies]
+types-html5lib = "*"
+
+[[package]]
+name = "types-colorama"
+version = "0.4.15.20240205"
+description = "Typing stubs for colorama"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-colorama-0.4.15.20240205.tar.gz", hash = "sha256:7ae4f58d407d387f4f98b24d81e1b7657ec754ea1dc4619ae5bd27f0c367637e"},
+    {file = "types_colorama-0.4.15.20240205-py3-none-any.whl", hash = "sha256:3ab26dcd76d2f13b1b795ed5c87a1a1a29331ea64cf614bb6ae958a3cebc3a53"},
+]
+
+[[package]]
+name = "types-decorator"
+version = "5.1.8.20240106"
+description = "Typing stubs for decorator"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-decorator-5.1.8.20240106.tar.gz", hash = "sha256:32ff92b33615060d23b9d3760124bdb3506c4aa8d9eb50963cf1a3c20b9ecbbf"},
+    {file = "types_decorator-5.1.8.20240106-py3-none-any.whl", hash = "sha256:14d21e6a0755dbb8f301f2f532b3eab5148f433c69dad2d98bf5bd2b3a2ef4e7"},
+]
+
+[[package]]
+name = "types-docutils"
+version = "0.20.0.20240302"
+description = "Typing stubs for docutils"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-docutils-0.20.0.20240302.tar.gz", hash = "sha256:cd2a00df09131f84b86efdacaa25b4594b44371f7a77846424e2fec17f3ead14"},
+    {file = "types_docutils-0.20.0.20240302-py3-none-any.whl", hash = "sha256:092d32bcd27d0920cf5d2c72c945ed1c67dc1367a8cf1db9182d3e23f06b74e7"},
+]
+
+[[package]]
+name = "types-html5lib"
+version = "1.1.11.20240228"
+description = "Typing stubs for html5lib"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-html5lib-1.1.11.20240228.tar.gz", hash = "sha256:22736b7299e605ec4ba539d48691e905fd0c61c3ea610acc59922232dc84cede"},
+    {file = "types_html5lib-1.1.11.20240228-py3-none-any.whl", hash = "sha256:af5de0125cb0fe5667543b158db83849b22e25c0e36c9149836b095548bf1020"},
+]
+
+[[package]]
+name = "types-jsonschema"
+version = "4.21.0.20240118"
+description = "Typing stubs for jsonschema"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-jsonschema-4.21.0.20240118.tar.gz", hash = "sha256:31aae1b5adc0176c1155c2d4f58348b22d92ae64315e9cc83bd6902168839232"},
+    {file = "types_jsonschema-4.21.0.20240118-py3-none-any.whl", hash = "sha256:77a4ac36b0be4f24274d5b9bf0b66208ee771c05f80e34c4641de7d63e8a872d"},
+]
+
+[package.dependencies]
+referencing = "*"
+
+[[package]]
 name = "types-openpyxl"
 version = "3.1.0.20240220"
 description = "Typing stubs for openpyxl"
@@ -3822,6 +3894,43 @@ python-versions = ">=3.8"
 files = [
     {file = "types-Pillow-10.2.0.20240213.tar.gz", hash = "sha256:4800b61bf7eabdae2f1b17ade0d080709ed33e9f26a2e900e470e8b56ebe2387"},
     {file = "types_Pillow-10.2.0.20240213-py3-none-any.whl", hash = "sha256:062c5a0f20301a30f2df4db583f15b3c2a1283a12518d1f9d81396154e12c1af"},
+]
+
+[[package]]
+name = "types-protobuf"
+version = "4.24.0.20240302"
+description = "Typing stubs for protobuf"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-protobuf-4.24.0.20240302.tar.gz", hash = "sha256:f22c00cc0cea9722e71e14d389bba429af9e35a74a949719c167203a5abbe2e4"},
+    {file = "types_protobuf-4.24.0.20240302-py3-none-any.whl", hash = "sha256:5c607990f50f14606c2edaf379f8acc7418fef1451b227aa3c6a8a2cbc6ff14a"},
+]
+
+[[package]]
+name = "types-pygments"
+version = "2.17.0.20240106"
+description = "Typing stubs for Pygments"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-Pygments-2.17.0.20240106.tar.gz", hash = "sha256:92e62ac37793e567cd2b0f64f1456c24fccce4041d9c5f869697a6739fde4fce"},
+    {file = "types_Pygments-2.17.0.20240106-py3-none-any.whl", hash = "sha256:8052c574b0ab8f2dc94bdc4a31b9d48e8aa5a0f12398ef40cadadbe551da949b"},
+]
+
+[package.dependencies]
+types-docutils = "*"
+types-setuptools = "*"
+
+[[package]]
+name = "types-python-dateutil"
+version = "2.8.19.20240106"
+description = "Typing stubs for python-dateutil"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-python-dateutil-2.8.19.20240106.tar.gz", hash = "sha256:1f8db221c3b98e6ca02ea83a58371b22c374f42ae5bbdf186db9c9a76581459f"},
+    {file = "types_python_dateutil-2.8.19.20240106-py3-none-any.whl", hash = "sha256:efbbdc54590d0f16152fa103c9879c7d4a00e82078f6e2cf01769042165acaa2"},
 ]
 
 [[package]]
@@ -3869,6 +3978,28 @@ python-versions = ">=3.7,<4.0"
 files = [
     {file = "types_s3transfer-0.10.0-py3-none-any.whl", hash = "sha256:44fcdf0097b924a9aab1ee4baa1179081a9559ca62a88c807e2b256893ce688f"},
     {file = "types_s3transfer-0.10.0.tar.gz", hash = "sha256:35e4998c25df7f8985ad69dedc8e4860e8af3b43b7615e940d53c00d413bdc69"},
+]
+
+[[package]]
+name = "types-setuptools"
+version = "69.1.0.20240302"
+description = "Typing stubs for setuptools"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-setuptools-69.1.0.20240302.tar.gz", hash = "sha256:ed5462cf8470831d1bdbf300e1eeea876040643bfc40b785109a5857fa7d3c3f"},
+    {file = "types_setuptools-69.1.0.20240302-py3-none-any.whl", hash = "sha256:99c1053920a6fa542b734c9ad61849c3993062f80963a4034771626528e192a0"},
+]
+
+[[package]]
+name = "types-six"
+version = "1.16.21.20240301"
+description = "Typing stubs for six"
+optional = false
+python-versions = ">=3.8"
+files = [
+    {file = "types-six-1.16.21.20240301.tar.gz", hash = "sha256:c877c0fa3dbe696860e571bfc23f987ce084bf4de13dfed343ef61ed49826686"},
+    {file = "types_six-1.16.21.20240301-py3-none-any.whl", hash = "sha256:4d5bbf07e521f0cb52cc880de71047bc9b5c2a5059211811e15423872d403c4c"},
 ]
 
 [[package]]
@@ -4069,4 +4200,4 @@ testing = ["big-O", "jaraco.functools", "jaraco.itertools", "more-itertools", "p
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.10, <3.12"
-content-hash = "cf094824bae101ce91d739e6c9bd971174dff5e9c718d21a68e3198edfff6ab4"
+content-hash = "f26c8143388a2b9aafbfd21ee0d0f7e3dfa3268fc554195352194050fbd123f4"

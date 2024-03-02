@@ -15,7 +15,7 @@ pythonpath = ["src"]
 
 [tool.poetry.dependencies]
 python = ">=3.10, <3.12"
-sm-pipelines-oo = { path = "..", develop = true }
+sm-pipelines-oo = { path = "..", develop = true }  # *Editable* install of our main package
 
 # Need to explicitly specify dev packages for library in examples package again (they are not passed through from dependency)
 [tool.poetry.group.dev.dependencies]

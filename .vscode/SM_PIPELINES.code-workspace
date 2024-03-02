@@ -10,8 +10,9 @@
 		// Scala
 		"files.watcherExclude": {
 			"**/target": true,
-			".metals/": true,
+			".metals/": true
 		},
+		"remote.autoForwardPortsFallback": 0,
 	},
 	"launch": {
 		"version": "0.2.0",

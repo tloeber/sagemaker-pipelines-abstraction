@@ -39,7 +39,7 @@ def write_parquet_to_s3(df: pd.DataFrame, path: str, **kwargs) -> None:
     s3_client: S3Client = boto3.client('s3')
     try:
         wr.s3.to_parquet(
-            df=iris_df,
+            df=df,
             path=input_path_s3,
             dataset=False,
         )

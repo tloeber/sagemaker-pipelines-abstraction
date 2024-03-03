@@ -6,11 +6,10 @@ across environments to avoid the complications that would arise from adding a se
 shared configuration.)
 """
 
-
 from functools import cached_property
 from typing import TypeAlias, Literal
 import os
-from s3path import S3Path
+from s3path import S3Path # type: ignore[import-untyped]
 
 from pydantic import computed_field, Field
 from pydantic_settings import BaseSettings

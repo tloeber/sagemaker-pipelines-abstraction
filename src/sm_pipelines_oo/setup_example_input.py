@@ -6,7 +6,7 @@ from pathlib import Path
 
 from loguru import logger
 import pandas as pd
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris # type: ignore[import-untyped]
 import boto3
 import awswrangler as wr
 

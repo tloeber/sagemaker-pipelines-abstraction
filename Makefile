@@ -26,13 +26,6 @@ scala-kernel:
 env-update:
 	python3 -m poetry update
 
-find-missing-typestubs:
-	@# First *run* type check to refresh mypy cache, but ignore any errors for now.
-	@mypy src/sm_pipelines_oo --exclude '_tmp/' &> /dev/null || echo ""
-	@echo "Looking for missing type stubs. If any, abort install using 'N' and install directly "
-	@echo "using 'poetry add --group dev <packages>'"
-	@mypy --install-types
-
 mark-sagemaker-sdk-as-typed:
 	@# todo: don't hard-code python version
 	@python_dir=$$(poetry env info --path); \
@@ -40,7 +33,22 @@ mark-sagemaker-sdk-as-typed:
 	# TODO: Generalize to any python version
 
 type-check:
-	mypy src/sm_pipelines_oo --exclude '_tmp/'
+	mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/'
+
+find-missing-typestubs:
+	@# First *run* type check to refresh mypy cache, but ignore any errors for now.
+	@mypy src/sm_pipelines_oo --exclude '_tmp/' &> /dev/null || echo ""
+	@echo "Looking for missing type stubs. If any, abort install using 'N' and install directly "
+	@echo "using 'poetry add --group dev <packages>'"
+	@mypy --install-types
+
+find-untyped-imports:
+	@echo "Untyped imports ignored:"
+	@# Note: -F is for fixed strings, so it's not interpreted as a regex
+	@cat $$(find src/sm_pipelines_oo -type f -name '*.py') | grep -F 'type: ignore[import-untyped]' || echo "None found"
+	@echo ""
+	@echo "Untyped imports found:"
+	@mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/' |  grep -F 'import-untyped' || echo "None found"
 
 test:
 	poetry run pytest

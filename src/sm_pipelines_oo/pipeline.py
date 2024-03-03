@@ -2,7 +2,7 @@ import subprocess
 from pathlib import Path
 
 from loguru import logger
-from s3path import S3Path
+from s3path import S3Path # type: ignore[import-untyped]
 from sagemaker.workflow.pipeline import Pipeline
 from sagemaker.workflow.steps import ConfigurableRetryStep
 
@@ -63,9 +63,9 @@ class PipelineFacade:
         with local_path.open(mode='w') as file:
             file.write(self._pipeline.definition())
 
-        # Upload to S3
+        # Upload to S3. (Override type error caused by missing type stubs for s3path.)
         s3_path: S3Path = (
-            self._shared_config.project_bucket /
+            self._shared_config.project_bucket /  # type: ignore[operator]
             f'pipeline_definitions/{self.pipeline_name}.json'
         )
         self.aws_connector.s3_client \

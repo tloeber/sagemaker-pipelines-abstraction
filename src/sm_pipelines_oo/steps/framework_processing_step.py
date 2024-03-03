@@ -8,7 +8,7 @@ from typing import TypeAlias, Any, Generic, TypeVar, Literal, ClassVar
 from pathlib import Path
 
 from loguru import logger
-from s3path import S3Path
+from s3path import S3Path # type: ignore[import-untyped]
 
 from sagemaker.session import Session
 from sagemaker.local.local_session import LocalSession

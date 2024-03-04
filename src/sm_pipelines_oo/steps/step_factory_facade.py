@@ -7,7 +7,7 @@ from sagemaker.workflow.steps import ConfigurableRetryStep
 
 from sm_pipelines_oo.steps.interfaces import StepFactoryInterface, StepFactoryFacadeInterface
 from sm_pipelines_oo.steps import framework_processing_step
-
+from sm_pipelines_oo.steps.interfaces import StepFactoryLookupTable
 
 class StepFactoryFacade(StepFactoryFacadeInterface):
     """
@@ -22,7 +22,7 @@ class StepFactoryFacade(StepFactoryFacadeInterface):
     - Finally, it will return the resulting list containing all steps.
     """
 
-    _default_stepfactory_lookup_table: ClassVar[dict[str, type[StepFactoryInterface]]] = {
+    _default_stepfactory_lookup_table: ClassVar[StepFactoryLookupTable] = {
         'FrameworkProcessor': framework_processing_step.StepFactory,
     }
 
@@ -32,30 +32,31 @@ class StepFactoryFacade(StepFactoryFacadeInterface):
         role_arn: str,
         pipeline_session: PipelineSession | LocalPipelineSession,
         # Generally, user does not set this, but it's useful for testing and custom use cases.
-        stepfactory_lookup_table: dict[str, type[StepFactoryInterface]] | None = None,
+        custom_stepfactory_lookup_table: StepFactoryLookupTable | None = None,
     ):
         self._step_config_dicts = step_config_dicts
         self._role_arn = role_arn
         self._pipeline_session = pipeline_session
-        self._userprovided_stepfactory_lookup_table = stepfactory_lookup_table
+        self._custom_stepfactory_lookup_table = custom_stepfactory_lookup_table
 
-    @property
-    def _stepfactory_lookup_table(self) -> dict[str, type[StepFactoryInterface]]:
-        if self._userprovided_stepfactory_lookup_table is not None:
-            return self._userprovided_stepfactory_lookup_table
-        else:
-            return self._default_stepfactory_lookup_table
+    def _lookup_step_factory_cls(self, step_config_dict: dict[str, Any]) -> type[StepFactoryInterface]:
+        """Get the right *class* of step factory for a given step (based on its config)."""
+        # Get *name* of class name from config
+        stepfactory_cls_name: str = step_config_dict['step_factory_class']
+        # Check if user provided a custom lookup table. If not, use the default.
+        stepfactory_lookup_table: StepFactoryLookupTable = (
+            self._default_stepfactory_lookup_table if self._custom_stepfactory_lookup_table is None
+            else self._custom_stepfactory_lookup_table
+        )
+        # Perform lookup
+        return stepfactory_lookup_table[stepfactory_cls_name]
 
     def _create_individual_step(
         self,
         step_config_dict: dict[str, Any]
     ) -> ConfigurableRetryStep:
-
-        # todo: extract more into the property (make it a lookup method)
-        # Get the right *class* of step factory for a given step (based on its config)
-        factory_cls_name: str = step_config_dict['step_factory_class']
-        StepFactory_cls: type[StepFactoryInterface] = self._stepfactory_lookup_table[factory_cls_name]
-
+        # Look up the right stepfactory class, based on config
+        StepFactory_cls: type[StepFactoryInterface] = self._lookup_step_factory_cls(step_config_dict)
         # Instantiate factory, using step config. Then create step
         step_factory: StepFactoryInterface = StepFactory_cls(
             step_config_dict=step_config_dict,

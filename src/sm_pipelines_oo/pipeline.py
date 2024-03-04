@@ -12,20 +12,24 @@ from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
 from sm_pipelines_oo.aws_connector.implementation import create_aws_connector
 from sm_pipelines_oo.config_loader.abstraction import AbstractConfigLoader
 from sm_pipelines_oo.config_loader.implementations import YamlConfigLoader
+from sm_pipelines_oo.steps.interfaces import StepFactoryLookupTable
 
 
 class PipelineFacade:
     def __init__(
         self,
         env: Environment,
-        config_loader: AbstractConfigLoader | None = None,
+        custom_config_loader: AbstractConfigLoader | None = None,
+        custom_stepfactory_lookup_table: StepFactoryLookupTable | None = None,
     ):
         """
         High level interface for using this library. For custom needs, you can use this as a template for your own implementation.
         """
         self._env: Environment = env # Added type hint to satisfy IDE's type checker
-        # Allows providing a different config loader, especially for testing
-        self._user_provided_config_loader = config_loader
+        # Allows user to provide a different config loader, especially for testing
+        self._custom_config_loader = custom_config_loader
+        # Allows user to specify a custom stepfactory lookup table (so they can specify in config which of their custom stepfactories to use)
+        self._custom_stepfactory_lookup_table = custom_stepfactory_lookup_table
 
         # Derived attributes
         # ------------------
@@ -44,6 +48,7 @@ class PipelineFacade:
             step_config_dicts=self._config_loader.step_configs_as_dicts, # todo: pass in method call again?
             role_arn=self.aws_connector.role_arn,
             pipeline_session=self.aws_connector.pipeline_session,
+            custom_stepfactory_lookup_table=self._custom_stepfactory_lookup_table,
         )
         _steps: list[ConfigurableRetryStep] = _step_factory_facade.create_all_steps()
 
@@ -79,8 +84,8 @@ class PipelineFacade:
 
     @property
     def _config_loader(self) -> AbstractConfigLoader:
-        if self._user_provided_config_loader is not None:
-            return self._user_provided_config_loader
+        if self._custom_config_loader is not None:
+            return self._custom_config_loader
         else:
             # todo: Should we inject this, so we don't depend on a concrete class?
             return YamlConfigLoader(env=self._env)

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar, Any
+from typing import Generic, TypeVar, Any, TypeAlias
 
 from sagemaker.processing import Processor, FrameworkProcessor
 from sagemaker.base_predictor import Predictor
@@ -33,20 +33,15 @@ class StepFactoryInterface(ABC):
         step_config_dict: dict[str, Any],
         role_arn: str,
         pipeline_session: PipelineSession | LocalPipelineSession,
-        sm_session: Session | LocalSession,
+        sm_session: Session | LocalSession | None = None,
     ):
         ...
-
-    # @staticmethod
-    # @abstractmethod
-    # def _get_config_model() -> type[BaseSettings]:
-    #     """
-    #     Pydantic model used to validate and convert the config_dict to an instance of pydantic.BaseSettings.
-    #     """
-    #     ...
-
 
     @abstractmethod
     def create_step(self) -> ConfigurableRetryStep:
         # Note that we don't have to worry about violating the LSP -  even though we are adding back an argument for the config – because at this stage that config will simply be of type dictionary. Thus, subclasses don't have to specify a more specific subtype of config here yet.
         ...
+
+
+# Type alias for lookup table
+StepFactoryLookupTable: TypeAlias = dict[str, type[StepFactoryInterface]]

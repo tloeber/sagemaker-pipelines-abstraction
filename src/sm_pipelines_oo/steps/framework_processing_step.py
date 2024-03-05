@@ -71,16 +71,8 @@ class _RunConfig(BaseSettings):
     code: str
     source_dir: str
     # todo: allow athena datasetdefinition instead
-    input_files_s3paths: list[str]  # todo: validate it's an s3 path
-    output_files_s3paths: list[str]  # todo: validate it's an s3 path
-
-    def get_input_files_s3paths(self) -> list[S3Path]:
-        """Converts list of strings to list of S3Path objects."""
-        return [S3Path.from_uri(s3path) for s3path in self.input_files_s3paths]
-
-    def get_output_files_s3paths(self) -> list[S3Path]:
-        """Converts list of strings to list of S3Path objects."""
-        return [S3Path.from_uri(s3path) for s3path in self.output_files_s3paths]
+    inputs: dict[str, str]  # todo: validate it's an s3 path
+    outputs: dict[str, str]  # todo: validate it's an s3 path
 
 
 # Combining configs into single config for the step
@@ -148,29 +140,28 @@ class StepFactory(StepFactoryInterface):
         Note: Unfortunately we can't just pass through everything else from config except what we don't need - which would be more flexible. Unfortunately, this would require *deleting* items from the typed dict (input/output_files_s3_path), which is not possible unless we convert it to a normal (untyped) dictionary. But doing so is not a desirable  approach either, because it would cause the type checker to lose knowledge about which types *are* still in there and are thus passed through (so type checker wouldn't recognize these and would think they are missing).
         """
 
-        # Create ProcessingInputs from list of s3paths
-        _input_files_s3: list[S3Path]  = self._config.processor_run_config.get_input_files_s3paths()
+        # Create Processing*Inputs* from list of s3paths
+        input_s3paths: dict[str, str] = self._config.processor_run_config.inputs
         processing_inputs: list[ProcessingInput] = [
             ProcessingInput(
-                input_name=str(s3path.stem), # filename without extension
-                source=s3path.as_uri(),
-                destination=str(self._local_dir / s3path.name), # Same filename, but in local dir
+                input_name=name,
+                source=s3path,
+                destination=str(self._local_dir / name ),
                 # todo: Allow passing through extra arguments
             )
-            for s3path in _input_files_s3
+            for name, s3path in input_s3paths.items()
         ]
 
-        # Do the same for ProcessingOutputs
-        _output_files_s3paths: list[S3Path] = self._config.processor_run_config \
-            .get_output_files_s3paths()
+        # Do the same for Processing*Outputs*
+        output_s3paths: dict[str, str] = self._config.processor_run_config.outputs
         _processing_outputs: list[ProcessingOutput] = [
             ProcessingOutput(
-                output_name=str(s3path.stem), # filename without extension
-                source=str(self._local_dir / s3path.name), # Same filename, but in local dir
-                destination=s3path.as_uri(),
+                output_name=name,
+                source=str(self._local_dir / name),
+                destination=s3path,
                 # todo: Allow passing through extra arguments
             )
-            for s3path in _output_files_s3paths
+            for name, s3path in output_s3paths.items()
         ]
 
         return RunArgs(

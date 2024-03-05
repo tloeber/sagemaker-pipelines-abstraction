@@ -18,24 +18,28 @@ from sm_pipelines_oo.steps.framework_processing_step import (
 run_args_config_dict_1: dict[str, Any] = {
     'code': 'code.py',
     'source_dir': 'code_dir/',
-    'input_files_s3paths': ['s3://test_bucket/input/input1.txt'],
-    'output_files_s3paths': ['s3://test_bucket/output/output1.txt'],
+    'inputs': {
+        'input_1': 's3://test_bucket/input_1/',
+    },
+    'outputs': {
+        'output_1': 's3://test_bucket/output_1/',
+    }
 }
 expected_run_args_1: RunArgs = {
     'code': 'code.py',
     'source_dir': 'code_dir/',
     'inputs': [
         ProcessingInput(
-            input_name='input1',
-            source='s3://test_bucket/input/input1.txt',
-            destination='/opt/ml/processing/input1.txt'
+            input_name='input_1',
+            source="s3://test_bucket/input_1/",
+            destination="/opt/ml/processing/input_1/",
         )
     ],
     'outputs': [
         ProcessingOutput(
-            output_name='output1',
-            source='/opt/ml/processing/output1.txt',
-            destination='s3://test_bucket/output/output1.txt',
+            output_name='output_1',
+            source='/opt/ml/processing/output_1',
+            destination='s3://test_bucket/output_1/',
         )
     ]
 }
@@ -45,14 +49,14 @@ expected_run_args_1: RunArgs = {
 run_args_config_dict_2: dict[str, Any] = {
     'code': 'code.py',
     'source_dir': 'code_dir/',
-    'input_files_s3paths': [
-        's3://test_bucket/input/input1.txt',
-        's3://test_bucket/input/input2.txt',
-    ],
-    'output_files_s3paths': [
-        's3://test_bucket/output/output1.txt',
-        's3://test_bucket/output/output2.txt'
-    ]
+    'inputs': {
+        'input_2': 's3://test_bucket/input_2/',
+        'input_3': 's3://test_bucket/input_3/',
+    },
+    'outputs': {
+        'output_2': 's3://test_bucket/output_2/',
+        'output_3': 's3://test_bucket/output_3/',
+    }
 }
 
 expected_run_args_2: RunArgs = {
@@ -60,31 +64,43 @@ expected_run_args_2: RunArgs = {
     'source_dir': 'code_dir/',
     'inputs': [
         ProcessingInput(
-            input_name='input1',
-            source='s3://test_bucket/input/input1.txt',
-            destination='/opt/ml/processing/input1.txt'
+            input_name='input_2',
+            source='s3://test_bucket/input_2/',
+            destination='/opt/ml/processing/input_2/',
         ),
         ProcessingInput(
-            input_name='input2',
-            source='s3://test_bucket/input/input2.txt',
-            destination='/opt/ml/processing/input2.txt'
-        )
-
+            input_name='input_3',
+            source='s3://test_bucket/input_3/',
+            destination='/opt/ml/processing/input_3',
+        ),
     ],
     'outputs': [
         ProcessingOutput(
-            output_name='output1',
-            source='/opt/ml/processing/output1.txt',
-            destination='s3://test_bucket/output/output1.txt'
+            output_name='output_2',
+            source='/opt/ml/processing/output_2',
+            destination='s3://test_bucket/output_2'
         ),
         ProcessingOutput(
-            output_name='output2',
-            source='/opt/ml/processing/output2.txt',
-            destination='s3://test_bucket/output/output2.txt'
+            output_name='output_3',
+            source='/opt/ml/processing/output_3',
+            destination='s3://test_bucket/output_3'
         )
 
     ]
 }
+
+
+# Helper functions
+# ================
+def assert_directories_are_equal(dir1: str, dir2: str):
+    """
+    Assert that two string paths point to the same directory, discarding trailing slash.
+    This works for S3 paths as well.
+    Note: While  it is usually better to use pathlib.Path or s3path.S3Path  nuggets for this purpose,  this makes the assert statements in the test code less intuitive, so I moved to this alternative solution.
+    """
+    standardized_dir1 = dir1.rstrip('/')
+    standardized_dir2 = dir2.rstrip('/')
+    assert standardized_dir1 == standardized_dir2
 
 
 # Actual test
@@ -138,16 +154,18 @@ def test_construct_processing_input_output(run_config_dict: dict[str, Any], expe
     # Go through *list* of inputs, and for each input compare the fields
     for actual_input, expected_input in zip(actual_inputs, expected_inputs):
         assert actual_input.input_name == expected_input.input_name
-        assert actual_input.source == expected_input.source
-        assert actual_input.destination == expected_input.destination
+        # Ignore type error - we know that the source and destination are strings, not PipelineVars.
+        assert_directories_are_equal(actual_input.source, expected_input.source) # type: ignore
+        assert_directories_are_equal(actual_input.destination, expected_input.destination) # type: ignore
 
-    # outputs
-    # -------
+    # # outputs
+    # # -------
     # Note: Didn't combine this logic with input checking for now, but we may want to compare different fields for each in the future.
     actual_outputs: list[ProcessingOutput] = actual_run_args['outputs']
     expected_outputs: list[ProcessingOutput] = expected_run_args['outputs']
     # Go through *list* of outputs, and for each output compare the fields
     for actual_output, expected_output in zip(actual_outputs, expected_outputs):
         assert actual_output.output_name == expected_output.output_name
-        assert actual_output.source == expected_output.source
-        assert actual_output.destination == expected_output.destination
+        # Ignore type error - we know that the source and destination are strings, not PipelineVars.
+        assert_directories_are_equal(actual_output.source, expected_output.source) # type: ignore
+        assert_directories_are_equal(actual_output.destination, expected_output.destination) # type: ignore

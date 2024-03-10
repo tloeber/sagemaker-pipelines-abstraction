@@ -9,7 +9,7 @@ from sagemaker.workflow.steps import ConfigurableRetryStep
 from sm_pipelines_oo.shared_config_schema import SharedConfig, Environment
 from sm_pipelines_oo.steps.step_factory_facade import StepFactoryFacade
 from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
-from sm_pipelines_oo.aws_connector.implementation import create_aws_connector
+from sm_pipelines_oo.aws_connector.concrete_connectors import create_aws_connector
 from sm_pipelines_oo.config_loader.abstraction import AbstractConfigLoader
 from sm_pipelines_oo.config_loader.implementations import YamlConfigLoader
 from sm_pipelines_oo.steps.interfaces import StepFactoryLookupTable
@@ -148,7 +148,8 @@ class DevPipelineFacade(PipelineFacade):
 
         Requires AWS CLI to be installed and configured.
         """
-
+        if self._env == 'local':
+            raise Exception('For local runs, run pipeline directly.')
         s3_location: S3Path = self.export_pipeline_definition_to_s3()
         self.upsert_pipeline(s3_location)
         self._start_pipeline()
@@ -156,7 +157,7 @@ class DevPipelineFacade(PipelineFacade):
 
     # Alternative way of running pipeline
     # -----------------------------------
-    def _create_and_run_pipeline_directly(self) -> None:
+    def _create_and_run_pipeline_directly(self, wait: bool = False) -> None:
         """
         Use `create_and_run_from_definition()` instead, except for troubleshooting.
         """
@@ -165,3 +166,7 @@ class DevPipelineFacade(PipelineFacade):
         )
         execution = self._pipeline.start()
         execution.describe()
+
+        if wait:
+            execution.wait()
+            logger.info('Pipeline execution finished.')

@@ -54,7 +54,7 @@ class _InitConfig(BaseSettings):
     estimator_cls_name: str
     instance_count: int
     instance_type: str
-
+    env: dict[str, str] | None = None
 
 # Arguments for *running* FrameworkProcessor
 # ------------------------------------------
@@ -183,9 +183,10 @@ class StepFactory(StepFactoryInterface):
             step_args=_step_args, # type: ignore
         )
 
-    def run_processor(self) -> None:
+    def run_processor(self, wait=True) -> None:
         """Runs the processor directly, bypassing the pipeline."""
         direct_processor = self.get_processor(as_pipeline=False)
         direct_processor.run(
-            **self._construct_run_args()
+            **self._construct_run_args(),
+            wait=wait
         )

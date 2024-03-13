@@ -128,12 +128,6 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
-# Terraform
-# =========
-**/terraform/.terraform*
-# Since statefiles may contain secrets
-**.tfstate*
-
 # Scala
 .metals/
 **/target/

@@ -17,7 +17,7 @@ class AbstractConfigLoader():
     def __init__(
         self,
         env: Environment,
-        config_root_folder: str = 'config',  # relative path from project root
+        config_root_folder: str = 'config',  # relative path from package root
     ):
         self._env = env
         self._config_folder = Path(config_root_folder) / env

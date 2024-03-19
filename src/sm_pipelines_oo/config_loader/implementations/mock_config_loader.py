@@ -1,22 +1,8 @@
-from functools import cached_property
 from typing import Any
+from functools import cached_property
 from pathlib import Path
-import json
 
-import yaml
-
-from sm_pipelines_oo.config_loader.abstraction import AbstractConfigLoader
 from sm_pipelines_oo.config_loader.interface import ConfigLoaderInterface
-
-class YamlConfigLoader(AbstractConfigLoader):
-    """Note: This does NOT load files with extension `.yml`."""
-    @property
-    def _file_type_to_load(self) -> str:
-        return 'yaml'
-
-    def _load_config(self, config_file: Path) -> dict[str, Any]:
-        with open(config_file, 'r') as file:
-            return yaml.safe_load(file)
 
 
 class MockConfigLoader(ConfigLoaderInterface):

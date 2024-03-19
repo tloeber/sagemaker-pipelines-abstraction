@@ -2,14 +2,20 @@ from abc import abstractmethod
 from typing import final, Any
 from pathlib import Path
 from functools import cached_property
+import json
 
-from sm_pipelines_oo.shared_config_schema import Environment
+import yaml
+
 from sm_pipelines_oo.config_loader.interface import ConfigLoaderInterface
+from sm_pipelines_oo.shared_config_schema import Environment
 
 
-class AbstractConfigLoader(ConfigLoaderInterface):
+# Abstract class implementing functionality shared by all file-based config loaders
+# ==================================================================================
+
+class BaseConfigLoader(ConfigLoaderInterface):
     """
-    Abstract factory for loading configs as dictionaries.
+    Abstract factory for loading configs from file into python dictionaries.
     Concrete implementations will  implement a method for how to load a given config file, as well as an attribute of which file types to load.
     This abstract class provides implementation for how to load both the shared config as well as all the steps configs.
     """
@@ -64,3 +70,34 @@ class AbstractConfigLoader(ConfigLoaderInterface):
         Returns file extension that identifies which files in config directory should be loaded.
         """
         ...
+
+
+# Concrete implementations
+# ========================
+
+# YAML
+# ----
+class YamlConfigLoader(BaseConfigLoader):
+    """Note: This does NOT load files with extension `.yml`."""
+    @property
+    def _file_type_to_load(self) -> str:
+        return 'yaml'
+
+    def _load_config(self, config_file: Path) -> dict[str, Any]:
+        with open(config_file, 'r') as file:
+            return yaml.safe_load(file)
+
+
+# JSON
+# ----
+class JSONConfigLoader(BaseConfigLoader):
+    """
+    Note: This has not been tested yet; it serves more as an example for how to handle different file types.
+    """
+    @property
+    def _file_type_to_load(self) -> str:
+        return 'json'
+
+    def _load_config(self, config_file: Path) -> dict[str, Any]:
+        with open(config_file, 'r') as file:
+            return json.load(file)

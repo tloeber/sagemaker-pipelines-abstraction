@@ -11,7 +11,7 @@ from sm_pipelines_oo.steps.step_factory_facade import StepFactoryFacade
 from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
 from sm_pipelines_oo.aws_connector.concrete_connectors import create_aws_connector
 from sm_pipelines_oo.config_loader.interface import ConfigLoaderInterface
-from sm_pipelines_oo.config_loader.implementations import YamlConfigLoader
+from sm_pipelines_oo.config_loader.implementations.file_loaders import YamlConfigLoader
 from sm_pipelines_oo.steps.interfaces import StepFactoryLookupTable
 
 

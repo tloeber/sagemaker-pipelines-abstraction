@@ -1,5 +1,5 @@
 from pathlib import Path
-from sm_pipelines_oo.config_loader.implementations import YamlConfigLoader
+from sm_pipelines_oo.config_loader.implementations.file_loaders import YamlConfigLoader
 
 
 # Use *relative* path from this file, so we can move this folder if necessary

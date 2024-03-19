@@ -1,12 +1,13 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import final, Any
 from pathlib import Path
 from functools import cached_property
 
 from sm_pipelines_oo.shared_config_schema import Environment
+from sm_pipelines_oo.config_loader.interface import ConfigLoaderInterface
 
 
-class AbstractConfigLoader():
+class AbstractConfigLoader(ConfigLoaderInterface):
     """
     Abstract factory for loading configs as dictionaries.
     Concrete implementations will  implement a method for how to load a given config file, as well as an attribute of which file types to load.

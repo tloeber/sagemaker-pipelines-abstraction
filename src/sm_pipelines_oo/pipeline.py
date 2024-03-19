@@ -10,7 +10,7 @@ from sm_pipelines_oo.shared_config_schema import SharedConfig, Environment
 from sm_pipelines_oo.steps.step_factory_facade import StepFactoryFacade
 from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
 from sm_pipelines_oo.aws_connector.concrete_connectors import create_aws_connector
-from sm_pipelines_oo.config_loader.abstraction import AbstractConfigLoader
+from sm_pipelines_oo.config_loader.interface import ConfigLoaderInterface
 from sm_pipelines_oo.config_loader.implementations import YamlConfigLoader
 from sm_pipelines_oo.steps.interfaces import StepFactoryLookupTable
 
@@ -19,7 +19,7 @@ class PipelineFacade:
     def __init__(
         self,
         env: Environment,
-        custom_config_loader: AbstractConfigLoader | None = None,
+        custom_config_loader: ConfigLoaderInterface | None = None,
         custom_stepfactory_lookup_table: StepFactoryLookupTable | None = None,
     ):
         """
@@ -83,7 +83,7 @@ class PipelineFacade:
         return s3_path
 
     @property
-    def _config_loader(self) -> AbstractConfigLoader:
+    def _config_loader(self) -> ConfigLoaderInterface:
         if self._custom_config_loader is not None:
             return self._custom_config_loader
         else:

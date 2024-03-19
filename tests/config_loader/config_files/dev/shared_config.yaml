@@ -1,0 +1,6 @@
+---
+project_name: test
+project_version: '0.0'
+region: us-east-1
+project_bucket_name: smp-oo-test
+role_name: sagemaker_pipelines_role

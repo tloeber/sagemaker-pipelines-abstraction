@@ -32,15 +32,23 @@ class AbstractConfigLoader():
     @cached_property
     def step_configs_as_dicts(self) -> list[dict[str, Any]]:
         """Traverses the config directory and returns names of all subfolders, each of which will correspond to a step name."""
-        # Since we are using Path.suffix, we need to add a `.` to the file extension we are looking for.
+        # Find all files in the config directory that match the file type we are looking for.
+        # Note: Since we are using Path.suffix, we need to add a `.` to the file extension.
         file_suffix_to_match = f'.{self._file_type_to_load}'
         step_config_paths: list[Path] = [
-            path for path in self._config_folder.iterdir() if path.suffix == file_suffix_to_match
+            path for path in self._config_folder.iterdir() if (
+                # Get all files with the matching extension, except for the shared config file
+                (path.suffix == file_suffix_to_match) and (path.stem != 'shared_config')
+            )
         ]
-        return [
-            self._load_config(config_path)
-            for config_path in step_config_paths
-        ]
+        # Load all files found
+        step_configs: list[dict] = []
+        for config_path in step_config_paths:
+            step_config = self._load_config(config_path)
+            # Add reference to shared config to each step config
+            step_config['shared_config'] = self.shared_config_as_dict
+            step_configs.append(step_config)
+        return step_configs
 
     # Abstract methods that concrete implementations must implement
     # --------------------------------------------------------------

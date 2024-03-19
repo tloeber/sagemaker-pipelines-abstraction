@@ -1,0 +1,17 @@
+---
+step_name: preprocessing
+step_factory_class: FrameworkProcessor
+processor_init_config:
+  env:
+    OUTPUT_FILENAME: output.csv
+  estimator_cls_name: SKLearn
+  framework_version: 0.23-1
+  instance_count: 1
+  instance_type: ml.m5.xlarge
+processor_run_config:
+  code: preprocess.py
+  inputs:
+    input_1: s3://smp-oo-test/examples/data/input_1
+  outputs:
+    output_1: s3://smp-oo-test/examples/data/output_1
+  source_dir: worker_code/preprocess

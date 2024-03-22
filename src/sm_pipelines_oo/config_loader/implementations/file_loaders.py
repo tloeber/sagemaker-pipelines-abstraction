@@ -38,7 +38,9 @@ class BaseConfigLoader(ConfigLoaderInterface):
     @final
     @cached_property
     def step_configs_as_dicts(self) -> list[dict[str, Any]]:
-        """Traverses the config directory and returns names of all subfolders, each of which will correspond to a step name."""
+        """
+        Traverses the config directory and returns names of all subfolders, each of which will correspond to a step name.
+        """
         # Find all files in the config directory that match the file type we are looking for.
         # Note: Since we are using Path.suffix, we need to add a `.` to the file extension.
         file_suffix_to_match = f'.{self._file_type_to_load}'

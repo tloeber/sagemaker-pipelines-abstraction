@@ -1,45 +1,79 @@
 """
-Run this script to set up imput data.
-To perform validation, import check_output()
+todo: refactor into a class.
 """
 
 import time
 
-from s3path import S3Path
 import pandas as pd
 import awswrangler as wr
 
+from smp_oo_examples.worker_code.preprocess.preprocess import transform
 
-_PROJECT_BUCKET = 'smp-oo-example'
-_DATA_PREFIX = 'examples/data/input_1'
-_FILENAME = 'input.parquet'
-input_path_s3 = f's3://{_PROJECT_BUCKET}/{_DATA_PREFIX}/{_FILENAME}'
 
-df = pd.DataFrame(
-    {
-        'a': [1, 2, 3],
-        'b': [4, 5, 6],
-        'c': [7, 8, 9],
+def setup_input(input_path_s3: str):
+    """Run this *before* pipeline."""
+    df_in = _create_input()
+    _upload_input(df_in, s3_path=input_path_s3)
+    expected_df_out = transform(df_in)
+    return {
+        'input': df_in,
+        'expected_output': expected_df_out
     }
-)
-expected_sum = df.sum().sum() * 2  # Transform just doubles every number
 
 
-def check_output(output_path_s3: S3Path, wait_time_in_minutes: int = 0):
+def check_output(
+    df_in: pd.DataFrame,
+    output_path_s3: str,
+    wait_time_in_minutes: int = 0,
+    max_age_minutes: int = 15,
+) -> None:
+    """Run this *after* pipeline."""
     # Wait if job has been triggered asyncronously
     time.sleep(wait_time_in_minutes*60)
 
-    df = pd.read_parquet(
-        output_path_s3.as_uri()
+    # Download output data from S3
+    df_out = pd.read_parquet(output_path_s3)
+    print(df_out)
+
+    _validate_transform(df_in=df_in, df_out=df_out)
+    _validate_date_column(df_out=df_out, max_age_minutes=max_age_minutes)
+
+
+def _create_input():
+    df_in = pd.DataFrame(
+        {
+            'a': [1, 1],
+            'b': [2, 2],
+        }
     )
-    print(df)
-    assert df.sum().sum() == expected_sum
-    print('Success')
+    return df_in
 
 
-if __name__ == '__main__':
+def _upload_input(df, s3_path: str):
     # Upload input data to S3
     wr.s3.to_parquet(
         df,
-        path=input_path_s3,
+        path=s3_path,
     )
+
+
+def _validate_transform(df_in: pd.DataFrame, df_out: pd.DataFrame):
+    # Check *transformation* is correct (only applied to first two columns)
+    sum_input = df_in.loc[:, ['a', 'b']].sum().sum()
+    expected_sum_output = sum_input * 2
+    actual_sum_output =  df_out.loc[:, ['a', 'b']].sum().sum()
+    assert actual_sum_output == expected_sum_output
+
+
+def _validate_date_column(df_out: pd.DataFrame, max_age_minutes=15):
+    """
+    Makes sure we're not dealing with data from previous iteration.
+    Adjust max_age_minutes according to time it takes to run the pipeline.
+    """
+    current_datetime = pd.Timestamp.now(tz='UTC')
+    # Note we need to use the *output* here, as we want to check we're checking a new version of the transformed data
+    datetime_of_transform = df_out.date.iloc[0]
+    max_allowed_timedelta = pd.Timedelta(minutes=max_age_minutes)
+    actual_timedelta = current_datetime - datetime_of_transform
+    print(f'\nObserved timedelta: {actual_timedelta}')
+    assert actual_timedelta < max_allowed_timedelta

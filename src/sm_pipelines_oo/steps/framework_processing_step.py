@@ -141,27 +141,27 @@ class StepFactory(StepFactoryInterface):
         """
 
         # Create Processing*Inputs* from list of s3paths
-        input_s3paths: dict[str, str] = self._config.processor_run_config.inputs
-        processing_inputs: list[ProcessingInput] = [
-            ProcessingInput(
-                input_name=name,
-                source=s3path,
-                destination=str(self._local_dir / name ),
+        _input_s3paths: dict[str, str] = self._config.processor_run_config.inputs
+        processing_inputs: list[ProcessingInput] = []
+        for input_name, input_s3path in _input_s3paths.items():
+            processing_input = ProcessingInput(
+                input_name=input_name,
+                source=input_s3path,
+                destination=str(self._local_dir / input_name ),
                 # todo: Allow passing through extra arguments
             )
-            for name, s3path in input_s3paths.items()
-        ]
+            processing_inputs.append(processing_input)
 
         # Do the same for Processing*Outputs*
         output_s3paths: dict[str, str] = self._config.processor_run_config.outputs
         _processing_outputs: list[ProcessingOutput] = [
             ProcessingOutput(
-                output_name=name,
-                source=str(self._local_dir / name),
+                output_name=output_name,
+                source=str(self._local_dir / output_name),
                 destination=s3path,
                 # todo: Allow passing through extra arguments
             )
-            for name, s3path in output_s3paths.items()
+            for output_name, s3path in output_s3paths.items()
         ]
 
         return RunArgs(

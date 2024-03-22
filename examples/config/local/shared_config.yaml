@@ -1,6 +1,6 @@
 ---
 project_name: test
-project_version: '0-1'
+project_version: '0.1'
 region: us-east-1
 project_bucket_name: smp-oo-example
 role_name: sagemaker_pipelines_role

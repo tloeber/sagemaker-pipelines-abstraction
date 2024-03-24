@@ -5,7 +5,7 @@ processor_init_config:
   env:
     OUTPUT_FILENAME: output.parquet
   estimator_cls_name: SKLearn
-  framework_version: 0.23-1
+  framework_version: 1.2-1
   instance_count: 1
   instance_type: ml.m5.xlarge
 processor_run_config:

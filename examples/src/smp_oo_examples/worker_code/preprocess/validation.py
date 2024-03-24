@@ -1,10 +1,15 @@
 """
 todo: refactor into a class.
 """
+from __future__ import annotations
 
-import time
-from typing import Callable, TypeAlias
 from functools import cached_property
+import time
+from typing import Callable
+try:
+    from typing import TypeAlias
+except ImportError:
+    from typing_extensions import TypeAlias
 
 import pandas as pd
 import awswrangler as wr
@@ -54,12 +59,13 @@ class Validator:
         time.sleep(wait_time_in_minutes*60)
 
         # Download output data from S3
-        df_out = pd.read_parquet(self._output_path_s3)
-        print(df_out)
+        actual_output_df = pd.read_parquet(self._output_path_s3)
+        print(f'Actual output:\n{actual_output_df}\n\nExpected output:\n{self._expected_output_df}')
+
 
         # Perform validation
         pd.testing.assert_frame_equal(
-            self._input_df,
+            actual_output_df,
             self._expected_output_df,
             check_dtype=False,
         )
@@ -93,10 +99,10 @@ class Validator:
         dealing results from a previous run.
         """
         # Todo: Allow user to override default output df
-        df_in_without_date: pd.DataFrame = self._input_df.drop('date')
-        df_out_without_date: pd.DataFrame = self._transform(df_in_without_date)
-        df_out: pd.DataFrame = df_out_without_date.assign(date=self._start_date)
-        return df_out
+        # df_in_without_date: pd.DataFrame = self._input_df.drop('date')
+        # df_out_without_date: pd.DataFrame = self._transform(df_in_without_date)
+        # df_out: pd.DataFrame = df_out_without_date.assign(date=self._start_date)
+        return  self._transform(self._input_df)
 
 
 # Helper functions

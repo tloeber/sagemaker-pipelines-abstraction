@@ -108,7 +108,7 @@ class Validator:
 # Helper functions
 # ================
 
-def transform_except_date(inner_func: DataframeTransform) -> DataframeTransform:
+def exclude_date_column_from_transform(inner_func: DataframeTransform) -> DataframeTransform:
     def wrapper_func(df_in: pd.DataFrame) -> pd.DataFrame:
         df_to_transform = df_in.drop('date', axis='columns')
         transformed_df = inner_func(df_to_transform)

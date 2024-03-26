@@ -5,12 +5,12 @@ import pandas as pd
 
 try:
     # This is how it will be imported on worker, where smp_oo_examples is NOT installed as a library
-    from validation import transform_except_date
+    from validation import exclude_date_column_from_transform
 except ModuleNotFoundError:
     # For running tests, etc.
-    from smp_oo_examples.worker_code.preprocess.validation import transform_except_date
+    from smp_oo_examples.worker_code.preprocess.validation import exclude_date_column_from_transform
 
-@transform_except_date
+@exclude_date_column_from_transform
 def transform(df: pd.DataFrame) -> pd.DataFrame:
     """Double all values in DataFrame and add current date."""
     return df \

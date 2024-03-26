@@ -3,7 +3,7 @@ from pathlib import Path
 
 from sm_pipelines_oo.steps.step_utils import PathFactory
 from sm_pipelines_oo.shared_config_schema import SharedConfig
-from sm_pipelines_oo.steps.pre_processing import ProcessingConfig
+from sm_pipelines_oo.steps.framework_processing_step import ProcessingConfig
 
 
 @pytest.fixture

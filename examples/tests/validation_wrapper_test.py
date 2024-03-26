@@ -1,6 +1,6 @@
 import pandas as pd
 import pytest
-from smp_oo_examples.validation import transform_except_date
+from smp_oo_examples.worker_code.preprocess.validation import exclude_date_column_from_transform
 
 # Define a simple transformation function
 def multiply_by_two(df: pd.DataFrame) -> pd.DataFrame:
@@ -9,7 +9,7 @@ def multiply_by_two(df: pd.DataFrame) -> pd.DataFrame:
 
 def test_transform_except_date():
     # Apply the decorator
-    decorated_multiply_by_two = transform_except_date(multiply_by_two)
+    decorated_multiply_by_two = exclude_date_column_from_transform(multiply_by_two)
     current_date = pd.Timestamp.now()
     # Create a test DataFrame
     df = pd.DataFrame({

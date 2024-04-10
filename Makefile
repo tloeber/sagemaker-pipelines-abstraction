@@ -6,7 +6,7 @@ env:
 
 	@# Note that Poetry creates *editable* install for root project by default
 	@# (unless package-mode is set to `false`)
-	 -m poetry install --all-extras --without scala_kernel
+	poetry install --all-extras --without scala_kernel
 
 	@echo ""
 	@echo "Please manually set this environment as default in IDE for this project."
@@ -14,9 +14,12 @@ env:
 	@echo "\"settings\": {\"python.defaultInterpreterPath\": \"$(python3 -m poetry env info --executable)\"}"
 	@echo "(This way you don't have to manually activate it for each shell using `python3 -m poetry shell`)"
 
-	@# This needs to happen *after* installing sagemaker-sdk
-	python3 -m poetry shell
+	# @# This needs to happen *after* installing sagemaker-sdk
+	python3 -m poetry shell || echo "Failed to activate newly created poetry env." # Doesn't work in Docker container
 	make mark-sagemaker-sdk-as-typed
+
+docker-env:
+	docker image build --build-arg="PYTHON_VERSION=3.10" -t sm-pipelines-oo-env .
 
 # So we can use Scala in Jupyter notebooks
 scala-kernel:
@@ -27,13 +30,9 @@ env-update:
 	python3 -m poetry update
 
 mark-sagemaker-sdk-as-typed:
-	@# todo: don't hard-code python version
-	@python_dir=$$(poetry env info --path); \
-	touch $${python_dir}/lib/python3.10/site-packages/sagemaker/py.typed
-	# TODO: Generalize to any python version
-
-type-check:
-	mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/'
+	PYTHON_MINOR_VERSION="$$(poetry run python -c 'import sys; print(sys.version_info.minor)')"; \
+	PYTHON_DIR=$$(poetry env info --path); \
+	touch $${PYTHON_DIR}/lib/python3.$${PYTHON_MINOR_VERSION}/site-packages/sagemaker/py.typed
 
 find-missing-typestubs:
 	@# First *run* type check to refresh mypy cache, but ignore any errors for now.
@@ -52,6 +51,9 @@ find-untyped-imports:
 
 test:
 	poetry run pytest
+
+lint:
+	poetry run mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/'
 
 build:
 	poetry build

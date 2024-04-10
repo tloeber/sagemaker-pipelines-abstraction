@@ -144,11 +144,16 @@ class StepFactory(StepFactoryInterface):
         _input_s3paths: dict[str, str] = self._config.processor_run_config.inputs
         processing_inputs: list[ProcessingInput] = []
         for input_name, input_s3path in _input_s3paths.items():
+            _input_destination = str(self._local_dir / input_name )
             processing_input = ProcessingInput(
                 input_name=input_name,
                 source=input_s3path,
-                destination=str(self._local_dir / input_name ),
+                destination=_input_destination,
                 # todo: Allow passing through extra arguments
+            )
+            logger.info(
+                'Using input from s3: %s . Storing it in: %s.',
+                input_s3path, _input_destination
             )
             processing_inputs.append(processing_input)
 

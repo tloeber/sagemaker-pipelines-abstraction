@@ -33,6 +33,8 @@ mark-sagemaker-sdk-as-typed:
 	PYTHON_MINOR_VERSION="$$(poetry run python -c 'import sys; print(sys.version_info.minor)')"; \
 	PYTHON_DIR=$$(poetry env info --path); \
 	touch $${PYTHON_DIR}/lib/python3.$${PYTHON_MINOR_VERSION}/site-packages/sagemaker/py.typed
+	echo "$${PYTHON_DIR}/lib/python3.$${PYTHON_MINOR_VERSION}/site-packages/sagemaker/py.typed"
+	python -V
 
 find-missing-typestubs:
 	@# First *run* type check to refresh mypy cache, but ignore any errors for now.
@@ -51,7 +53,7 @@ find-untyped-imports:
 
 test:
 	poetry run pytest tests/
-
+	# Note: We're skipping tests in examples/ for now (they require different env)
 lint:
 	poetry run mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/'
 

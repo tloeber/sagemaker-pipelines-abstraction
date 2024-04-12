@@ -114,8 +114,6 @@ def assert_directories_are_equal(dir1: str, dir2: str):
     ]
 )
 def test_construct_processing_input_output(run_config_dict: dict[str, Any], expected_run_args):
-    import os
-    # print(f"region: {os.environ['AWS_REGION']}")
     step_config_dict = {
         'step_name': 'testing',
         'step_factory_class': 'FrameworkProcessingStepFactory',

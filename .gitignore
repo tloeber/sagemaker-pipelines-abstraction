@@ -139,6 +139,6 @@ images/*
 **/tmp/
 **/_tmp/
 **_tmp.*
-
+**/_old/
 # Tmp
 # ===

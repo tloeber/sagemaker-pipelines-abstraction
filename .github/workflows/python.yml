@@ -7,9 +7,25 @@ name: Python package
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - 'Makefile'
+      - '.github/workflows/python.yml'
   pull_request:
-    branches: [ main ]
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'tests/**'
+      - 'pyproject.toml'
+      - 'poetry.lock'
+      - 'Makefile'
+      - '.github/workflows/python.yml'
 
 env:
   AWS_DEFAULT_REGION: us-east-1

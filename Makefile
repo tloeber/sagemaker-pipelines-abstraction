@@ -6,7 +6,7 @@ env:
 
 	@# Note that Poetry creates *editable* install for root project by default
 	@# (unless package-mode is set to `false`)
-	poetry install --all-extras --without scala_kernel
+	poetry install --all-extras
 
 	@echo ""
 	@echo "Please manually set this environment as default in IDE for this project."
@@ -20,11 +20,6 @@ env:
 
 docker-env:
 	docker image build --build-arg="PYTHON_VERSION=3.10" -t sm-pipelines-oo-env .
-
-# So we can use Scala in Jupyter notebooks
-scala-kernel:
-	python3 -m poetry install --with scala_kernel
-	python -m spylon_kernel install --user
 
 env-update:
 	python3 -m poetry update

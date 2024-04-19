@@ -51,7 +51,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
-      run: make env
+      run: pip install . && make mark-sagemaker-sdk-as-typed
 
     - name: Run linting
       run: make lint

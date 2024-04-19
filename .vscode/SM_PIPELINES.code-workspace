@@ -5,7 +5,7 @@
 		}
 	],
 	"settings": {
-		"python.defaultInterpreterPath": "~/.cache/pypoetry/virtualenvs/sm-pipelines-oo-tWfBw0_D-py3.10/bin/python",
+		"python.defaultInterpreterPath": "~/repos/sagemaker-pipelines-abstraction/.venv/bin/python",
 		"terminal.integrated.cwd": "src/sm_pipelines_oo",
 		"remote.autoForwardPortsFallback": 0,
 	},

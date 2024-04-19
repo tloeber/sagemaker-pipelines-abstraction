@@ -54,10 +54,10 @@ find-untyped-imports:
 	@mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/' |  grep -F 'import-untyped' || echo "None found"
 
 test:
-	poetry run pytest tests/
+	pytest tests/
 	# Note: We're skipping tests in examples/ for now (they require different env)
 lint:
-	poetry run mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/'
+	mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/'
 
 build:
 	poetry build

@@ -60,7 +60,7 @@ test:
 	# Note: We're skipping tests in examples/ for now (they require different env)
 
 type-check:
-	mypy src/smp_oo_examples --exclude '_tmp/' --exclude '_old/'
+	mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/'
 
 build:
 	poetry build

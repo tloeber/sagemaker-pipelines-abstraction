@@ -62,9 +62,6 @@ test:
 type-check:
 	mypy src/smp_oo_examples --exclude '_tmp/' --exclude '_old/'
 
-lint:
-	type-check
-
 build:
 	poetry build
 

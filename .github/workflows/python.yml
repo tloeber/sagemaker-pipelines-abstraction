@@ -54,7 +54,7 @@ jobs:
       run: pip install . && make mark-sagemaker-sdk-as-typed
 
     - name: Run linting
-      run: make lint
+      run: make type-check
 
     - name: Run unit tests
       run: make test

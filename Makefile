@@ -13,9 +13,11 @@ PYTHON := python${PYTHON_VERSION}
 SAGEMAKER_PACKAGE_LOCATION=$(shell python -c "import importlib.util; print(importlib.util.find_spec('sagemaker').submodule_search_locations[0])")
 
 env:
-	# (Re-)create directory for virtual environments
-	rm -rf .venv || echo "No existing virtual environment found."
-	# Set poetry to install virtual environment into project folder, because otherwise venv name is not deterministic. See https://github.com/python-poetry/poetry/issues/263
+	# Remove exiting virtual environments, if found
+	( rm -rf .venv && echo "Removing existing venv" ) || \
+		echo "No existing virtual environment found."
+	# Set poetry to install virtual environment into *project* folder, because otherwise venv name
+	# is not deterministic. See https://github.com/python-poetry/poetry/issues/263
 	# Just in case, deactivate any activate environment first
 	( deactivate &> /dev/null || echo "No virtual env active" ) && \
 		${PYTHON} -m pip install poetry && \
@@ -32,7 +34,7 @@ test-env:
 	docker image build --build-arg="PYTHON_VERSION=3.12" -t sm-pipelines-oo-env-3.12 .
 
 env-update:
-	python3 -m poetry update
+	${PYTHON} -m poetry update
 
 mark-sagemaker-sdk-as-typed:
 	echo "Marking Sagemaker SDK as typed"
@@ -56,8 +58,12 @@ find-untyped-imports:
 test:
 	pytest tests/
 	# Note: We're skipping tests in examples/ for now (they require different env)
+
+type-check:
+	mypy src/smp_oo_examples --exclude '_tmp/' --exclude '_old/'
+
 lint:
-	mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/'
+	type-check
 
 build:
 	poetry build

@@ -53,8 +53,8 @@ jobs:
     - name: Install dependencies
       run: pip install . && make mark-sagemaker-sdk-as-typed
 
-    - name: Run linting
-      run: make type-check
+    - name: Run type checking
+      run: pip install mypy && make type-check
 
     - name: Run unit tests
       run: make test

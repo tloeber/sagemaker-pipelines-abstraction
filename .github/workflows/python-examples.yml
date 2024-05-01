@@ -3,7 +3,7 @@
 # This workflow will install Python dependencies, run tests and lint with a variety of Python versions
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
-name: Python package
+name: Python Examples
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
       - 'examples/pyproject.toml'
       - 'examples/poetry.lock'
       - 'examples/Makefile'
-      - 'examples/.github/workflows/python-examples.yml'
+      - '.github/workflows/python-examples.yml'
   pull_request:
     branches:
       - main
@@ -25,7 +25,7 @@ on:
       - 'examples/pyproject.toml'
       - 'examples/poetry.lock'
       - 'examples/Makefile'
-      - 'examples/.github/workflows/python-examples.yml'
+      - '.github/workflows/python-examples.yml'
 
 env:
   AWS_DEFAULT_REGION: us-east-1

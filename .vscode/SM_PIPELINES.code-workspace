@@ -5,7 +5,7 @@
 		}
 	],
 	"settings": {
-		"python.defaultInterpreterPath": "~/repos/sagemaker-pipelines-abstraction/.venv/bin/python",
+		"python.defaultInterpreterPath": "./.venv/bin/python",
 		"terminal.integrated.cwd": "src/sm_pipelines_oo",
 		"remote.autoForwardPortsFallback": 0,
 	},

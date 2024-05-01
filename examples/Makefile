@@ -62,8 +62,7 @@ mark-sagemaker-sdk-as-typed:
 	touch ${SAGEMAKER_PACKAGE_LOCATION}/py.typed
 
 test:
-	pytest tests/
-	# Note: We're skipping tests in examples/ for now (they require different env)
+	${PYTHON} -m pytest tests/
 
 build:
 	poetry build

@@ -5,7 +5,7 @@ import pandas as pd
 
 try:
     # This is how it will be imported on worker, where smp_oo_examples is NOT installed as a library
-    from validation import exclude_date_column_from_transform
+    from validation import exclude_date_column_from_transform # type: ignore
 except ModuleNotFoundError:
     # For running tests, etc.
     from smp_oo_examples.worker_code.preprocess.validation import exclude_date_column_from_transform

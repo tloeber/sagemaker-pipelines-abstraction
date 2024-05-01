@@ -5,7 +5,7 @@
 		}
 	],
 	"settings": {
-		"python.defaultInterpreterPath": "~/.cache/pypoetry/virtualenvs/sm-pipelines-oo-examples-yainlQgE-py3.10/bin/python",
+		"python.defaultInterpreterPath": "./examples/.venv/bin/python",
 		"terminal.integrated.cwd": "examples/terraform",
 		},
 	},

@@ -10,22 +10,22 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'poetry.lock'
-      - 'Makefile'
-      - '.github/workflows/python-examples.yml'
+      - 'examples/src/**'
+      - 'examples/tests/**'
+      - 'examples/pyproject.toml'
+      - 'examples/poetry.lock'
+      - 'examples/Makefile'
+      - 'examples/.github/workflows/python-examples.yml'
   pull_request:
     branches:
       - main
     paths:
-      - 'src/**'
-      - 'tests/**'
-      - 'pyproject.toml'
-      - 'poetry.lock'
-      - 'Makefile'
-      - '.github/workflows/python-examples.yml'
+      - 'examples/src/**'
+      - 'examples/tests/**'
+      - 'examples/pyproject.toml'
+      - 'examples/poetry.lock'
+      - 'examples/Makefile'
+      - 'examples/.github/workflows/python-examples.yml'
 
 env:
   AWS_DEFAULT_REGION: us-east-1

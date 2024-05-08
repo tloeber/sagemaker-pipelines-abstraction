@@ -58,6 +58,7 @@ jobs:
     - name: Run type checking
       run: |
         pip install mypy
+        mypy --non-interactive --install-types
         make type-check
 
     - name: Run unit tests

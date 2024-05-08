@@ -2,7 +2,9 @@ SHELL := /bin/bash
 
 # Variables to set by user
 # ------------------------
-# Set major and minor version of python to use
+# Set major and minor version of python to use for local install. Note: Any commands run in CICD
+# pipeline should not depend on this variable, as we need to be able to install different versions
+# there.
 PYTHON_VERSION := 3.11
 
 # *Derived* Variables (don't change)

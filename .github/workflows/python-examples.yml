@@ -55,12 +55,12 @@ jobs:
         cd examples
         pip install poetry
         poetry install --all-extras
+        poetry shell
         make mark-sagemaker-sdk-as-typed
 
     - name: Run type checking
       run: |
         cd examples
-        pip install mypy
         make type-check
 
     - name: Run unit tests

@@ -58,6 +58,7 @@ jobs:
         poetry export -f requirements.txt --output requirements.txt --all-extras
         pip install -r requirements.txt
         make mark-sagemaker-sdk-as-typed
+        pip install mypy
         pip list
 
     - name: Run type checking

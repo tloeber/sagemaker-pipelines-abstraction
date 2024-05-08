@@ -51,7 +51,10 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Install dependencies
-      run: pip install . && make mark-sagemaker-sdk-as-typed
+      run: |
+        pip install poetry
+        poetry install --all-extras
+        make mark-sagemaker-sdk-as-typed
 
     - name: Run type checking
       run: pip install mypy && make type-check

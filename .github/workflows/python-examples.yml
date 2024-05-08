@@ -53,7 +53,8 @@ jobs:
     - name: Install dependencies
       run: |
         cd examples
-        pip install .
+        pip install poetry
+        poetry install --all-extras
         make mark-sagemaker-sdk-as-typed
 
     - name: Run type checking

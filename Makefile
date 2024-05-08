@@ -57,7 +57,7 @@ find-untyped-imports:
 
 test:
 	pytest tests/
-	# Note: We're skipping tests in examples/ for now (they require different env)
+
 
 type-check:
 	mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/'

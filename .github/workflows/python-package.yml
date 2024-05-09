@@ -50,18 +50,40 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Install dependencies (incl. dev dependencies)
+    - name: Install Poetry
+      uses: snok/install-poetry@v1.3
+      with:
+        version: 1.8.2
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+        installer-parallel: true
+
+    - name: Load cached venv if found
+      id: cached-poetry-dependencies
+      uses: actions/cache@v3
+      with:
+        path: .venv
+        key: venv-${{ matrix.python-version }}-${{ hashFiles('pyproject.toml') }}
+
+    - name: Install dependencies (excluding project code, so it isn't cached!) IFF cache miss
+      if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
+      run: poetry install --no-interaction --no-root --all-extras
+
+    - name: Install project
+      run: poetry install --no-interaction --all-extras
+
+    - name: mark sagemaker sdk as typed
       run: |
-        pip install .
-        make mark-sagemaker-sdk-as-typed
+        SAGEMAKER_PACKAGE_LOCATION=$(poetry run python -c "import importlib.util; print(importlib.util.find_spec('sagemaker').submodule_search_locations[0])")
+        touch ${SAGEMAKER_PACKAGE_LOCATION}/py.typed
 
     - name: Run type checking
       run: |
-        pip install mypy
-        make type-check || mypy --non-interactive --install-types
-        mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/' --disable-error-code=import-untyped
+        source .venv/bin/activate
+        make type-check
 
     - name: Run unit tests
+
       run: |
-        pip install pytest
+        source .venv/bin/activate
         make test

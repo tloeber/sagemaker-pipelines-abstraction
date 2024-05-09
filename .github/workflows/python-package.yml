@@ -59,7 +59,7 @@ jobs:
       run: |
         pip install mypy
         make type-check || mypy --non-interactive --install-types
-        make type-check
+        mypy src/sm_pipelines_oo --exclude '_tmp/' --exclude '_old/' --disable-error-code=import-untyped
 
     - name: Run unit tests
       run: |

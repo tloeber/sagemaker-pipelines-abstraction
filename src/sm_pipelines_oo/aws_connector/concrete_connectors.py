@@ -8,11 +8,6 @@ import boto3
 from sagemaker.local.local_session import LocalSession
 from sagemaker.session import Session, get_execution_role
 from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSession
-if TYPE_CHECKING:
-    from mypy_boto3_sagemaker.client import SageMakerClient
-    from mypy_boto3_sagemaker_runtime.client import SageMakerRuntimeClient
-    from mypy_boto3_sts.client import STSClient
-    from mypy_boto3_s3.client import S3Client
 
 from sm_pipelines_oo.shared_config_schema import SharedConfig, Environment
 from sm_pipelines_oo.aws_connector.base_connector import BaseConnector

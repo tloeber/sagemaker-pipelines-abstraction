@@ -11,11 +11,11 @@ from sagemaker.workflow.pipeline_context import PipelineSession, LocalPipelineSe
 from sm_pipelines_oo.shared_config_schema import SharedConfig, Environment
 from sm_pipelines_oo.aws_connector.interface import AWSConnectorInterface
 
-# if TYPE_CHECKING:
-from mypy_boto3_sagemaker.client import SageMakerClient
-from mypy_boto3_s3.client import S3Client
-from mypy_boto3_sagemaker_runtime.client import SageMakerRuntimeClient
-from mypy_boto3_sts.client import STSClient
+if TYPE_CHECKING:
+    from mypy_boto3_sagemaker.client import SageMakerClient
+    from mypy_boto3_s3.client import S3Client
+    from mypy_boto3_sagemaker_runtime.client import SageMakerRuntimeClient
+    from mypy_boto3_sts.client import STSClient
 
 
 class BaseConnector(AWSConnectorInterface):
@@ -35,22 +35,22 @@ class BaseConnector(AWSConnectorInterface):
         return boto3.Session(region_name=self.shared_config.region)
 
     @cached_property
-    def _sm_runtime_client(self) -> SageMakerRuntimeClient:
+    def _sm_runtime_client(self) -> 'SageMakerRuntimeClient':
         """For invoking endpoints."""
         return self._boto_session.client("sagemaker-runtime")
 
     @cached_property
-    def sm_client(self) -> SageMakerClient:
+    def sm_client(self) -> 'SageMakerClient':
         return self._boto_session.client("sagemaker")
 
     @cached_property
-    def s3_client(self) -> S3Client:
+    def s3_client(self) -> 'S3Client':
         return self._boto_session.client("s3")
 
     @cached_property
     def aws_account_id(self) -> str:
         # todo: use value in configs, if specified?
-        sts_client: STSClient = boto3.client("sts")
+        sts_client: 'STSClient' = boto3.client("sts")
         return sts_client.get_caller_identity()["Account"]
 
     @cached_property
@@ -71,6 +71,7 @@ class BaseConnector(AWSConnectorInterface):
     @cached_property
     def default_bucket(self) -> str:
         return self.sm_session.default_bucket()  # type: ignore
+
 
     # Abstract methods
     # ================

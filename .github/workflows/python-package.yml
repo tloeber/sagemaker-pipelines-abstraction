@@ -67,7 +67,7 @@ jobs:
 
     - name: Install dependencies (excluding project code, so it isn't cached!) IFF cache miss
       if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-      run: poetry install --no-interaction --no-root --all-extras
+      run: poetry install --no-interaction --all-extras --no-root
 
     - name: Install project
       run: poetry install --no-interaction --all-extras

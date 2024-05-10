@@ -18,6 +18,7 @@ env:
 	# Remove exiting virtual environments, if found
 	( rm -rf .venv && echo "Removing existing venv" ) || \
 		echo "No existing virtual environment found."
+		
 	# Set poetry to install virtual environment into *project* folder, because otherwise venv name
 	# is not deterministic. See https://github.com/python-poetry/poetry/issues/263
 	# Just in case, deactivate any activate environment first
